@@ -25,7 +25,7 @@ public class StubAiProvider implements AiProvider {
 
     @Override
     public String ocr(byte[] image, String mimeType) {
-        throw new UnsupportedOperationException("当前 AI 提供方是 stub，不支持 OCR；请配置真实的 AI 提供方");
+        throw new UnsupportedOperationException("当前 AI 提供方是 stub，不支持 OCR；设置 LEARNMAP_AI_PROVIDER=claude 和 LEARNMAP_AI_API_KEY 后可用");
     }
 
     @Override

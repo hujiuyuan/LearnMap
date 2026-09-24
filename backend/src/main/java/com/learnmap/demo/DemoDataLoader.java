@@ -49,9 +49,14 @@ public class DemoDataLoader implements ApplicationRunner {
         }
 
         byte[] content = new ClassPathResource("demo/quadratic-equation.md").getContentAsByteArray();
-        var imported = books.importBook(ops, "一元二次方程（示例）", "LearnMap", "quadratic-equation.md", content, ReviewMode.NONE);
-        var copy = graphs.assign(tutor, imported.book().getId(), learner.getId());
-        log.info("演示数据已导入：运维 id={}，辅导者 id={}，学习者 id={}，书 id={}，学习者图谱 id={}",
-                ops.getId(), tutor.getId(), learner.getId(), imported.book().getId(), copy.id());
+        try {
+            var imported = books.importBook(ops, "一元二次方程（示例）", "LearnMap", "quadratic-equation.md", content, ReviewMode.NONE);
+            var copy = graphs.assign(tutor, imported.book().getId(), learner.getId());
+            log.info("演示数据已导入：运维 id={}，辅导者 id={}，学习者 id={}，书 id={}，学习者图谱 id={}",
+                    ops.getId(), tutor.getId(), learner.getId(), imported.book().getId(), copy.id());
+        } catch (RuntimeException e) {
+            // 比如接了真实 AI 但 key 不对：账号照样建好，示例书跳过，不影响启动
+            log.warn("示例书导入失败，已跳过：{}", e.getMessage());
+        }
     }
 }

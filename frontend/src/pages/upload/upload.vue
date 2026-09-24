@@ -18,7 +18,7 @@
         <button size="mini" :type="reviewMode === 'NONE' ? 'primary' : 'default'" @click="reviewMode = 'NONE'">直接用</button>
         <button size="mini" :type="reviewMode === 'REVIEW_BEFORE_PUBLISH' ? 'primary' : 'default'" @click="reviewMode = 'REVIEW_BEFORE_PUBLISH'">我先审一遍</button>
       </view>
-      <view class="muted" v-if="hasImages">照片和扫描版需要 AI 识别文字，接入真实 AI 模型之前会提示不支持。</view>
+      <view class="muted" v-if="hasImages">照片和扫描版需要 AI 识别文字，后端没配 AI 模型时会提示不支持。</view>
       <button type="primary" :disabled="busy || !files.length" @click="submit">{{ busy ? '正在生成图谱…' : '上传并生成图谱' }}</button>
     </view>
   </view>

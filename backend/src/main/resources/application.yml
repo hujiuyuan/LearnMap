@@ -25,10 +25,12 @@ management:
 
 learnmap:
   ai:
-    # stub：离线假实现，不调用任何模型。真实提供方接入后改这里。
+    # stub：离线假实现，不调用任何模型；claude：用 Claude（需要 LEARNMAP_AI_API_KEY）
     provider: ${LEARNMAP_AI_PROVIDER:stub}
     api-key: ${LEARNMAP_AI_API_KEY:}
+    # 留空用默认模型 claude-opus-5
     model: ${LEARNMAP_AI_MODEL:}
+    fallbacks: ${LEARNMAP_AI_FALLBACKS:true}
   auth:
     # 只认登录令牌；dev / test 里打开，允许用请求头 X-User-Id 直接指定用户
     allow-user-id-header: false

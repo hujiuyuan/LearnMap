@@ -70,9 +70,17 @@ cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=mysql
 - 节点详情显示原文出处和前置 / 后续
 - 前端：书架（含今日计划、今日复习入口）、学习目标设置、今日计划与番茄钟、按章展示的知识地图、知识点小测、入门诊断和报告、翻卡复习、费曼讲解、三种练习、延时复测
 
-**还是占位（stub）**
-- **AI**（按计划最后对接）：图谱抽取、出题、费曼评分、OCR 都走 `AiProvider` 接口，目前只有离线假实现 `StubAiProvider`——每个小节抽成一个知识点、同章按顺序串前置、每个节点出一道判断题。接真实模型需要 API key，通过环境变量 `LEARNMAP_AI_PROVIDER` / `LEARNMAP_AI_API_KEY` / `LEARNMAP_AI_MODEL` 配置，不写进代码
-- **OCR**：图片、扫描版 PDF 和手写费曼讲解要靠 AI 识别文字，stub 不支持，会提示“请配置真实的 AI 提供方”；文字版 PDF、EPUB、Word、TXT / Markdown 不受影响
+**AI**
 
-**还没做（后续 PR）**
-接入真实 AI 模型。
+图谱抽取、出题、费曼评分、OCR 都走 `AiProvider` 接口，有两个实现，用 `LEARNMAP_AI_PROVIDER` 切换：
+
+- `stub`（默认）：离线假实现，不调用任何模型。每个小节抽成一个知识点、同章按顺序串前置、每个节点出一道判断题和一道填空题，只用来把链路跑通；不支持 OCR（图片、扫描版 PDF、手写讲解会提示不支持）。
+- `claude`：用 Claude（Anthropic 官方 Java SDK，默认模型 `claude-opus-5`）。抽取、出题、评分用结构化输出，结果再按业务规则清洗：题型只留能自动判分的、选择题答案必须是选项之一、关系两端必须是已有知识点。模型拒答时默认由服务端换模型重试（`LEARNMAP_AI_FALLBACKS=false` 可关）。
+
+```bash
+export LEARNMAP_AI_PROVIDER=claude
+export LEARNMAP_AI_API_KEY=你的 Anthropic API key   # 不要写进代码或配置文件
+export LEARNMAP_AI_MODEL=claude-opus-5               # 可选
+```
+
+调用失败（key 不对、限流、服务出错）时接口返回 502 和原因。`ClaudeAiProviderTest.liveCall` 只在设置了 `LEARNMAP_AI_API_KEY` 时真实调用一次，CI 里不跑。
