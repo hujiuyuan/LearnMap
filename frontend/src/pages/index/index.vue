@@ -12,6 +12,22 @@
       <view v-if="me" class="muted">{{ me.displayName }} · {{ roleLabel[me.role] }}</view>
     </view>
 
+    <view class="card" v-if="highlights">
+      <view class="title">已点亮 {{ highlights.lit }} / {{ highlights.total }} 个知识点</view>
+      <view class="muted">连续学习 {{ highlights.streak }} 天 · 近两周学了 {{ highlights.activeDays14 }} 天</view>
+      <view class="muted" v-if="highlights.bestMode">{{ highlights.bestMode }}</view>
+    </view>
+
+    <view class="card" v-if="me && me.role === 'TUTOR'" @click="go('/pages/tutor/tutor')">
+      <view class="title">我的学习者</view>
+      <view class="muted">看每个人的进度、画像和需要你处理的事</view>
+    </view>
+
+    <view class="card" v-if="me && me.role === 'OPS'" @click="go('/pages/ops/ops')">
+      <view class="title">运维后台</view>
+      <view class="muted">常被标“诊断不对”的知识点</view>
+    </view>
+
     <view class="card" v-if="me && me.role === 'LEARNER'" @click="openPlan">
       <view class="title">今日计划</view>
       <view class="muted" v-if="!plan || !plan.goal">还没有学习目标：打开一本书，点“设学习目标”</view>
@@ -60,6 +76,7 @@ const books = ref([])
 const dueCount = ref(0)
 const retestCount = ref(0)
 const plan = ref(null)
+const highlights = ref(null)
 
 async function load() {
   if (!userId.value) return
@@ -68,10 +85,15 @@ async function load() {
   dueCount.value = me.value.role === 'LEARNER' ? (await api.dueCards()).dueCount : 0
   retestCount.value = me.value.role === 'LEARNER' ? (await api.dueRetests()).length : 0
   plan.value = me.value.role === 'LEARNER' ? await api.plan(me.value.id) : null
+  highlights.value = me.value.role === 'LEARNER' ? await api.highlights(me.value.id) : null
+}
+
+function go(url) {
+  uni.navigateTo({ url })
 }
 
 function openPlan() {
-  if (plan.value && plan.value.goal) uni.navigateTo({ url: '/pages/plan/plan' })
+  if (plan.value && plan.value.goal) uni.navigateTo({ url: `/pages/plan/plan?learnerId=${me.value.id}` })
 }
 
 function openRetest() {
@@ -90,7 +112,7 @@ function switchUser(id) {
 
 async function openBook(book) {
   if (me.value.role !== 'LEARNER') {
-    uni.showToast({ title: '辅导者和运维的页面还在开发中', icon: 'none' })
+    uni.showToast({ title: '在“我的学习者”里把书分配给学习者', icon: 'none' })
     return
   }
   // 学习者打开书时拿到自己的图谱副本（第一次打开会复制一份）

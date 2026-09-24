@@ -22,19 +22,19 @@
     <view class="card" v-for="b in plan.blocks" :key="b.blockNo">
       <view class="block-head">
         <view class="title">第 {{ b.blockNo }} {{ blockUnit }} · {{ b.minutes }} 分钟</view>
-        <button size="mini" v-if="!timer && !blockDone(b)" @click="startTimer(b)">开始计时</button>
+        <button size="mini" v-if="mine && !timer && !blockDone(b)" @click="startTimer(b)">开始计时</button>
       </view>
       <view v-for="t in b.tasks" :key="t.id" :class="['task', t.status.toLowerCase()]">
         <view class="task-body">
           <view>{{ taskLabel(t) }} <text class="muted">{{ t.minutes }} 分钟</text></view>
           <view class="muted">{{ t.reason }}</view>
         </view>
-        <view class="task-actions" v-if="t.status === 'TODO'">
+        <view class="task-actions" v-if="mine && t.status === 'TODO'">
           <button size="mini" type="primary" @click="go(t)">去做</button>
           <button size="mini" @click="mark(t, 'DONE')">完成</button>
           <button size="mini" @click="mark(t, 'SKIPPED')">跳过</button>
         </view>
-        <view class="muted" v-else>{{ t.status === 'DONE' ? '已完成' : '已跳过' }}</view>
+        <view class="muted" v-else>{{ { TODO: '未完成', DONE: '已完成', SKIPPED: '已跳过' }[t.status] }}</view>
       </view>
     </view>
 
@@ -54,7 +54,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { onShow, onUnload } from '@dcloudio/uni-app'
+import { onLoad, onShow, onUnload } from '@dcloudio/uni-app'
 import { api, currentUserId } from '../../api/client'
 
 const scopeLabel = { BOOK: '整本书', CHAPTERS: '指定章节', WEAK: '补薄弱点' }
@@ -70,6 +70,8 @@ const typeLabel = {
 }
 
 const plan = ref(null)
+const learnerId = ref(null)
+const mine = computed(() => String(learnerId.value) === String(currentUserId()))
 const timer = ref(null)
 const now = ref(Date.now())
 let tick = null
@@ -95,7 +97,7 @@ function blockDone(b) {
 }
 
 async function load() {
-  plan.value = await api.plan(currentUserId())
+  plan.value = await api.plan(learnerId.value)
 }
 
 async function replan() {
@@ -149,6 +151,9 @@ async function stopTimer(completed) {
   uni.showToast({ title: completed ? '这一块完成了，休息 5 分钟吧' : '已放弃这一块', icon: 'none' })
 }
 
+onLoad((q) => {
+  learnerId.value = q.learnerId || currentUserId()
+})
 onShow(load)
 onUnload(() => clearInterval(tick))
 </script>

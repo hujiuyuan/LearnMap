@@ -13,5 +13,7 @@ public interface ScheduledRetestRepository extends JpaRepository<ScheduledRetest
 
     List<ScheduledRetest> findByLearnerIdAndDoneTrue(Long learnerId);
 
+    List<ScheduledRetest> findByLearnerIdAndNodeIdOrderByIdDesc(Long learnerId, Long nodeId);
+
     boolean existsByLearnerIdAndNodeIdAndReasonAndDoneFalse(Long learnerId, Long nodeId, RetestReason reason);
 }

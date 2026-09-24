@@ -27,6 +27,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import com.learnmap.question.Ability;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * 书 → 书本图谱（MASTER）：对每个小节调用 AI 抽知识点和关系，按名称合并去重，挂原文出处，再按节点出题。
@@ -152,10 +155,22 @@ public class GraphGenerationService {
             q.setOptionsJson(toJson(g.options()));
             q.setAnswer(g.answer());
             q.setDifficulty(g.difficulty());
+            q.setAbilities(abilities(g.abilities()));
             q.setSource(QuestionSource.AI);
             q.setVerified(false);
             questions.save(q);
         }
+    }
+
+    /** 只保留认识的能力名，逗号分隔 */
+    static String abilities(List<String> names) {
+        if (names == null) {
+            return null;
+        }
+        String joined = names.stream().map(String::trim)
+                .filter(n -> Arrays.stream(Ability.values()).anyMatch(a -> a.name().equals(n)))
+                .distinct().collect(Collectors.joining(","));
+        return joined.isEmpty() ? null : joined;
     }
 
     private String toJson(List<String> options) {

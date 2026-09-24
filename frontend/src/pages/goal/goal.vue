@@ -87,7 +87,7 @@ const rhythm = ref('POMODORO')
 const daysLeft = computed(() => Math.round((new Date(deadline.value) - new Date(today)) / 86400000))
 
 async function submit() {
-  await api.createGoal({
+  const res = await api.createGoal({
     graphId: Number(graphId.value),
     scope: scope.value,
     chapterIds: chapterIds.value.map(Number),
@@ -97,7 +97,7 @@ async function submit() {
     mainStyle: mainStyle.value,
     rhythm: rhythm.value,
   })
-  uni.redirectTo({ url: '/pages/plan/plan' })
+  uni.redirectTo({ url: `/pages/plan/plan?learnerId=${res.goal.learnerId}` })
 }
 
 onLoad(async (q) => {

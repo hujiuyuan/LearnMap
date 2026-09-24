@@ -49,7 +49,9 @@ public interface AiProvider {
     record NodeBrief(String name, String definition, NodeType type, List<String> sourceExcerpts) {
     }
 
-    record GeneratedQuestion(String type, String stem, List<String> options, String answer, double difficulty) {
+    /** @param abilities 考查的能力（{@link com.learnmap.question.Ability} 的名字），用于能力画像 */
+    record GeneratedQuestion(String type, String stem, List<String> options, String answer, double difficulty,
+                             List<String> abilities) {
     }
 
     /** @param score 0~1 */

@@ -26,6 +26,9 @@ public class FeynmanController {
     public record ExplainRequest(String explanation, String imageBase64, String imageMimeType, Long parentAttemptId) {
     }
 
+    public record ReviewRequest(double score, String note) {
+    }
+
     @PostMapping("/graphs/{graphId}/nodes/{nodeId}/feynman")
     public AttemptView explain(@RequestHeader(CurrentUser.HEADER) Long userId, @PathVariable Long graphId,
                                @PathVariable Long nodeId, @RequestBody ExplainRequest req) {
@@ -38,5 +41,17 @@ public class FeynmanController {
     public List<AttemptView> history(@RequestHeader(CurrentUser.HEADER) Long userId, @PathVariable Long learnerId,
                                      @RequestParam(required = false) Long nodeId) {
         return feynman.history(users.require(userId), learnerId, nodeId);
+    }
+
+    /** 辅导者复核：给出自己的分数和意见 */
+    @PostMapping("/feynman/{attemptId}/review")
+    public AttemptView review(@RequestHeader(CurrentUser.HEADER) Long userId, @PathVariable Long attemptId,
+                              @RequestBody ReviewRequest req) {
+        return feynman.review(users.require(userId), attemptId, req.score(), req.note());
+    }
+
+    @GetMapping("/tutor/feynman-reviews")
+    public List<AttemptView> pendingReviews(@RequestHeader(CurrentUser.HEADER) Long userId) {
+        return feynman.pendingReviews(users.require(userId));
     }
 }

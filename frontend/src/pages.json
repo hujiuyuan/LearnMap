@@ -39,6 +39,22 @@
 		{
 			"path": "pages/plan/plan",
 			"style": { "navigationBarTitleText": "今日计划" }
+		},
+		{
+			"path": "pages/tutor/tutor",
+			"style": { "navigationBarTitleText": "我的学习者" }
+		},
+		{
+			"path": "pages/learner/learner",
+			"style": { "navigationBarTitleText": "学习者画像" }
+		},
+		{
+			"path": "pages/trace/trace",
+			"style": { "navigationBarTitleText": "为什么不会" }
+		},
+		{
+			"path": "pages/ops/ops",
+			"style": { "navigationBarTitleText": "运维" }
 		}
 	],
 	"globalStyle": {

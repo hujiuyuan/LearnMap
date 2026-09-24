@@ -10,6 +10,8 @@ import com.learnmap.evidence.AnswerService.AnswerRequest;
 import com.learnmap.evidence.AnswerService.AnswerResult;
 import com.learnmap.evidence.ErrorType;
 import com.learnmap.evidence.SelfConfidence;
+import com.learnmap.flag.FlagKind;
+import com.learnmap.flag.FlagService;
 import com.learnmap.graph.GraphKind;
 import com.learnmap.graph.GraphService;
 import com.learnmap.graph.KnowledgeGraph;
@@ -49,6 +51,7 @@ public class PracticeService {
     private final QuestionRepository questions;
     private final AnswerService answers;
     private final RetestService retests;
+    private final FlagService flags;
     private final UserService users;
     private final ObjectMapper json;
     private final Clock clock;
@@ -56,7 +59,7 @@ public class PracticeService {
 
     public PracticeService(PracticeSessionRepository sessions, PracticeItemRepository items, GraphService graphs,
                            LearnerGraphSnapshotLoader snapshots, QuestionRepository questions, AnswerService answers,
-                           RetestService retests, UserService users, ObjectMapper json, Clock clock,
+                           RetestService retests, FlagService flags, UserService users, ObjectMapper json, Clock clock,
                            List<PracticeFlow<?>> flowList) {
         this.sessions = sessions;
         this.items = items;
@@ -65,6 +68,7 @@ public class PracticeService {
         this.questions = questions;
         this.answers = answers;
         this.retests = retests;
+        this.flags = flags;
         this.users = users;
         this.json = json;
         this.clock = clock;
@@ -165,6 +169,9 @@ public class PracticeService {
         d.recheck().forEach(n -> retests.schedule(s.getLearnerId(), n, RetestReason.DELIBERATE_RECHECK, source));
         s.setStateJson(writeState(d.state()));
         if (d.done()) {
+            if (d.state() instanceof FirstPrinciplesFlow.State fp) {
+                fp.flagged.forEach(n -> flags.systemFlag(s.getLearnerId(), n, FlagKind.STUCK, "第一性原理补缺两轮都没通过"));
+            }
             s.setPhase(PracticePhase.DONE);
             s.setStatus(Status.COMPLETED);
             s.setSummary(d.summary());

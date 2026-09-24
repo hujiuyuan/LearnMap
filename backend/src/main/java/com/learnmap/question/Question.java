@@ -10,6 +10,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -47,4 +50,15 @@ public class Question extends BaseEntity {
 
     @Column(nullable = false)
     private boolean verified;
+
+    /** 逗号分隔的 {@link Ability} */
+    private String abilities;
+
+    public List<Ability> abilityList() {
+        if (abilities == null || abilities.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(abilities.split(",")).map(String::trim).filter(s -> !s.isEmpty())
+                .map(Ability::valueOf).toList();
+    }
 }

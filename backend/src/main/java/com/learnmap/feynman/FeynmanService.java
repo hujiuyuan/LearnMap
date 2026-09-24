@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
 
@@ -61,7 +62,9 @@ public class FeynmanService {
 
     public record AttemptView(Long id, Long nodeId, Long parentAttemptId, String explanation, boolean fromImage,
                               double score, List<String> covered, List<String> missing, List<String> incorrect,
-                              List<String> followUps, boolean needsReview, Double mastery) {
+                              List<String> followUps, boolean needsReview, Double mastery,
+                              Long learnerId, String nodeName, Double reviewedScore, String reviewNote,
+                              LocalDateTime createdAt) {
     }
 
     /**
@@ -126,6 +129,46 @@ public class FeynmanService {
         return view(a, m.getMastery());
     }
 
+    /**
+     * 辅导者复核 AI 评分：复核分另记一条 FEYNMAN 证据（人的判断也是证据），并清掉“待复核”。
+     */
+    @Transactional
+    public AttemptView review(AppUser actor, Long attemptId, double score, String note) {
+        FeynmanAttempt a = attempts.findById(attemptId).orElseThrow(() -> NotFoundException.of("讲解", attemptId));
+        if (!users.isTutorOf(actor.getId(), a.getLearnerId())) {
+            throw new ForbiddenException("只有学习者的辅导者可以复核讲解");
+        }
+        if (score < 0 || score > 1) {
+            throw new IllegalArgumentException("复核分要在 0 到 1 之间");
+        }
+        a.setReviewedBy(actor.getId());
+        a.setReviewedScore(score);
+        a.setReviewNote(note);
+        a.setReviewedAt(LocalDateTime.now());
+        a.setNeedsReview(false);
+        KnowledgeNode node = nodes.findById(a.getNodeId()).orElseThrow();
+        Evidence ev = new Evidence();
+        ev.setLearnerId(a.getLearnerId());
+        ev.setNodeId(a.getNodeId());
+        ev.setActivityType(ActivityType.FEYNMAN);
+        ev.setResult(score >= PASS_SCORE ? EvidenceResult.CORRECT : score <= 0.2 ? EvidenceResult.INCORRECT : EvidenceResult.PARTIAL);
+        ev.setScore(score);
+        ev.setDifficulty(FEYNMAN_DIFFICULTY);
+        evidences.save(ev);
+        NodeMastery m = mastery.apply(ev, node);
+        if (score >= PASS_SCORE) {
+            retests.scheduleRetention(a.getLearnerId(), a.getNodeId(), ActivityType.FEYNMAN);
+        }
+        return view(a, m.getMastery());
+    }
+
+    /** 辅导者名下所有学习者待复核的讲解 */
+    public List<AttemptView> pendingReviews(AppUser tutor) {
+        List<Long> learners = users.learnersOf(tutor.getId()).stream().map(AppUser::getId).toList();
+        return learners.isEmpty() ? List.of() : attempts.findByLearnerIdInAndNeedsReviewTrueOrderByIdDesc(learners)
+                .stream().map(a -> view(a, null)).toList();
+    }
+
     public List<AttemptView> history(AppUser actor, Long learnerId, Long nodeId) {
         users.checkCanView(actor, learnerId);
         return (nodeId == null ? attempts.findByLearnerIdOrderByIdDesc(learnerId)
@@ -144,7 +187,9 @@ public class FeynmanService {
     private AttemptView view(FeynmanAttempt a, Double mastery) {
         return new AttemptView(a.getId(), a.getNodeId(), a.getParentAttemptId(), a.getExplanation(), a.isFromImage(),
                 a.getScore(), read(a.getCoveredJson()), read(a.getMissingJson()), read(a.getIncorrectJson()),
-                read(a.getFollowUpsJson()), a.isNeedsReview(), mastery);
+                read(a.getFollowUpsJson()), a.isNeedsReview(), mastery, a.getLearnerId(),
+                nodes.findById(a.getNodeId()).map(KnowledgeNode::getName).orElse(null), a.getReviewedScore(),
+                a.getReviewNote(), a.getCreatedAt());
     }
 
     private String write(List<String> list) {
