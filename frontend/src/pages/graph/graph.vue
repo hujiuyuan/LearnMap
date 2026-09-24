@@ -10,6 +10,11 @@
       </view>
     </view>
 
+    <view class="card update" v-if="update && update.available" @click="openUpdate">
+      <view class="title">这本书的图谱有新版本</view>
+      <view class="muted">{{ update.canDecide ? '点这里看差异，选择合并 / 保留旧版 / 换成新版' : '等你的辅导者决定要不要更新' }}</view>
+    </view>
+
     <!-- 移动端默认用“按章列表”展示，不画一大团网（产品方案 2.6） -->
     <view class="card" v-for="ch in chapters" :key="ch.id">
       <view class="title">{{ ch.title }}</view>
@@ -35,6 +40,7 @@ const graphId = ref(null)
 const bookId = ref(null)
 const graph = ref(null)
 const sections = ref([])
+const update = ref(null)
 
 const status = nodeStatus
 const total = computed(() => (graph.value ? graph.value.nodes.length : 0))
@@ -86,6 +92,11 @@ async function load() {
   if (!graphId.value) return
   graph.value = await api.graph(graphId.value)
   sections.value = await api.sections(bookId.value)
+  update.value = await api.graphUpdate(graphId.value)
+}
+
+function openUpdate() {
+  uni.navigateTo({ url: `/pages/update/update?graphId=${graphId.value}` })
 }
 
 onLoad((q) => {
@@ -96,6 +107,9 @@ onShow(load)
 </script>
 
 <style>
+.update {
+  background: #fff8e6;
+}
 .actions {
   display: flex;
   gap: 12rpx;

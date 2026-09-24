@@ -40,6 +40,11 @@ public class TutorController {
         return tutors.dashboard(users.require(userId));
     }
 
+    @GetMapping("/tutor/heatmap")
+    public TutorService.Heatmap heatmap(@RequestHeader(CurrentUser.HEADER) Long userId) {
+        return tutors.heatmap(users.require(userId));
+    }
+
     /** 完整五张画像：辅导者、运维，以及想看数字的学习者本人 */
     @GetMapping("/learners/{learnerId}/profile")
     public LearnerProfile profile(@RequestHeader(CurrentUser.HEADER) Long userId, @PathVariable Long learnerId) {

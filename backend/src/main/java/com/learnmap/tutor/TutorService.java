@@ -1,5 +1,7 @@
 package com.learnmap.tutor;
 
+import com.learnmap.book.Book;
+import com.learnmap.book.BookRepository;
 import com.learnmap.common.ForbiddenException;
 import com.learnmap.common.NotFoundException;
 import com.learnmap.evidence.ActivityType;
@@ -15,6 +17,7 @@ import com.learnmap.flag.LearnerFlag;
 import com.learnmap.flag.LearnerFlagRepository;
 import com.learnmap.graph.GraphService;
 import com.learnmap.graph.KnowledgeGraph;
+import com.learnmap.graph.KnowledgeGraphRepository;
 import com.learnmap.graph.KnowledgeNode;
 import com.learnmap.graph.KnowledgeNodeRepository;
 import com.learnmap.graph.NodeType;
@@ -37,8 +40,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -60,6 +66,8 @@ public class TutorService {
     private final KnowledgeNodeRepository nodes;
     private final LearnerGraphSnapshotLoader snapshots;
     private final QuestionRepository questions;
+    private final KnowledgeGraphRepository graphRepo;
+    private final BookRepository books;
 
     public record LearnerCard(Long learnerId, String name, int lit, int total, int weak, int streak, int activeDays14,
                               Double planCompletionRate, String planWarning, LocalDateTime lastActiveAt,
@@ -80,6 +88,41 @@ public class TutorService {
     public record Trace(Long learnerId, Long nodeId, String name, NodeType type, String definition, Double mastery,
                         Double confidence, NodeStatus status, List<TraceEvidence> recent, List<TracePrereq> prerequisites,
                         List<String> rootCauses, String explanation, List<FlagView> flags) {
+    }
+
+    /** 班级热力图：学习者 × 章，格子是该章的平均掌握度（没这本书的为空） */
+    public record Heatmap(List<String> columns, List<HeatRow> rows) {
+    }
+
+    public record HeatRow(Long learnerId, String name, List<Double> values) {
+    }
+
+    @Transactional(readOnly = true)
+    public Heatmap heatmap(AppUser tutor) {
+        if (tutor.getRole() != Role.TUTOR) {
+            throw new ForbiddenException("只有辅导者有班级热力图");
+        }
+        Map<String, Integer> columns = new LinkedHashMap<>();
+        List<Map<String, Double>> cells = new ArrayList<>();
+        List<AppUser> learners = users.learnersOf(tutor.getId());
+        for (AppUser l : learners) {
+            Map<String, Double> row = new HashMap<>();
+            for (LearnerProfile.ChapterStat ch : profiles.compute(l.getId()).knowledge().chapters()) {
+                String book = graphRepo.findById(ch.graphId()).flatMap(g -> books.findById(g.getBookId()))
+                        .map(Book::getTitle).orElse("");
+                String col = book + " · " + ch.title();
+                columns.putIfAbsent(col, columns.size());
+                row.put(col, ch.avgMastery());
+            }
+            cells.add(row);
+        }
+        List<String> cols = new ArrayList<>(columns.keySet());
+        List<HeatRow> rows = new ArrayList<>();
+        for (int i = 0; i < learners.size(); i++) {
+            Map<String, Double> row = cells.get(i);
+            rows.add(new HeatRow(learners.get(i).getId(), learners.get(i).getDisplayName(), cols.stream().map(row::get).toList()));
+        }
+        return new Heatmap(cols, rows);
     }
 
     @Transactional(readOnly = true)

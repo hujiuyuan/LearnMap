@@ -136,7 +136,8 @@ public class GraphGenerationService {
         return graph;
     }
 
-    private void generateQuestions(Book book, KnowledgeNode node, List<SourceChunk> chunks) {
+    /** 给一个节点出题（编辑器里新加节点时也用） */
+    void generateQuestions(Book book, KnowledgeNode node, List<SourceChunk> chunks) {
         NodeBrief brief = new NodeBrief(node.getName(), node.getDefinition(), node.getNodeType(),
                 chunks.stream().map(SourceChunk::getContent).limit(3).toList());
         for (GeneratedQuestion g : ai.generateQuestions(brief, QUESTIONS_PER_NODE)) {

@@ -46,6 +46,9 @@ class TutorIntegrationTest extends ApiTestSupport {
         assertThat(card.get("streak").asInt()).isEqualTo(1);
         assertThat(card.get("alerts").toString()).contains("费曼讲解等你复核");
         call(get("/api/tutor/dashboard"), learner, status().isForbidden());
+        JsonNode heat = call(get("/api/tutor/heatmap"), tutor, status().isOk());
+        assertThat(heat.get("columns").get(0).asText()).isEqualTo("一元一次方程 · 第一章 方程");
+        assertThat(heat.at("/rows/0/values/0").asDouble()).isLessThan(0.5);
 
         // 追溯：解一元一次方程 ← 移项 ← 等式的性质（薄弱），根因是等式的性质
         JsonNode trace = call(get("/api/learners/" + learner + "/nodes/" + nodes.get("解一元一次方程") + "/trace"), tutor, status().isOk());

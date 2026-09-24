@@ -14,6 +14,11 @@
           <button size="mini" v-for="g in graphs" :key="g.id" @click="setGoal(g)">设目标：{{ bookTitles[g.bookId] || '书 ' + g.bookId }}</button>
           <button size="mini" @click="openPlan">看计划</button>
         </view>
+        <view v-for="g in graphs" :key="'u' + g.id">
+          <view class="update-hint" v-if="updates[g.id] && updates[g.id].available" @click="openUpdate(g)">
+            「{{ bookTitles[g.bookId] || '书 ' + g.bookId }}」有新版图谱，{{ updates[g.id].canDecide ? '点这里选择怎么更新' : '由学习者本人选择' }}
+          </view>
+        </view>
       </view>
       <view class="card" v-for="ch in k.chapters" :key="ch.graphId + '-' + ch.chapterId">
         <view class="title">{{ ch.title }}</view>
@@ -141,6 +146,7 @@ const tab = ref('knowledge')
 const profile = ref(null)
 const graphs = ref([])
 const bookTitles = ref({})
+const updates = ref({})
 const reviews = ref([])
 const flags = ref([])
 
@@ -177,6 +183,10 @@ function setGoal(g) {
   uni.navigateTo({ url: `/pages/goal/goal?graphId=${g.id}&bookId=${g.bookId}` })
 }
 
+function openUpdate(g) {
+  uni.navigateTo({ url: `/pages/update/update?graphId=${g.id}` })
+}
+
 function openPlan() {
   uni.navigateTo({ url: `/pages/plan/plan?learnerId=${learnerId.value}` })
 }
@@ -196,6 +206,9 @@ async function load() {
   profile.value = await api.profile(learnerId.value)
   graphs.value = await api.learnerGraphs(learnerId.value)
   bookTitles.value = Object.fromEntries((await api.books()).map((x) => [x.id, x.title]))
+  const ups = {}
+  for (const g of graphs.value) ups[g.id] = await api.graphUpdate(g.id)
+  updates.value = ups
   flags.value = await api.flags(learnerId.value)
   reviews.value = (await api.feynmanReviews())
     .filter((r) => String(r.learnerId) === String(learnerId.value))
@@ -232,6 +245,10 @@ onShow(load)
 }
 .actions uni-button {
   margin: 0;
+}
+.update-hint {
+  margin-top: 12rpx;
+  color: #b56b00;
 }
 .heat {
   display: flex;

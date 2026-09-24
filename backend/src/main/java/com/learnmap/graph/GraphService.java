@@ -156,7 +156,7 @@ public class GraphService {
 
     /**
      * 把书的最新已发布图谱复制一份给学习者。学习者已经有这本书的副本时直接返回原副本；
-     * 新旧版本不同时的“合并 / 保留 / 替换”选择在后续 PR 实现。
+     * 新旧版本不同时的“合并 / 保留 / 替换”见 {@link GraphUpdateService}。
      */
     @Transactional
     public GraphSummary assign(AppUser actor, Long bookId, Long learnerId) {
@@ -198,6 +198,9 @@ public class GraphService {
             idMap.put(n.getId(), nodes.save(n.copyTo(copy.getId())).getId());
         }
         for (NodeRelation r : relations.findByGraphId(master.getId())) {
+            if (r.getReviewStatus() == ItemReviewStatus.REJECTED) {
+                continue;
+            }
             NodeRelation c = new NodeRelation();
             c.setGraphId(copy.getId());
             c.setFromNodeId(idMap.get(r.getFromNodeId()));
@@ -216,9 +219,23 @@ public class GraphService {
     public Map<Long, KnowledgeNode> learnerNodesFor(Long learnerId, Long bookId, Collection<Long> masterNodeIds) {
         KnowledgeGraph copy = graphs.findByOwnerLearnerIdAndBookIdAndKind(learnerId, bookId, GraphKind.LEARNER_COPY)
                 .orElseThrow(() -> new IllegalStateException("学习者还没有这本书的图谱，请先分配"));
-        return nodes.findByGraphIdAndOriginNodeIdIn(copy.getId(), masterNodeIds).stream()
+        Map<Long, KnowledgeNode> out = new HashMap<>(nodes.findByGraphIdAndOriginNodeIdIn(copy.getId(), masterNodeIds).stream()
                 .filter(n -> !n.isDeleted())
-                .collect(Collectors.toMap(KnowledgeNode::getOriginNodeId, Function.identity()));
+                .collect(Collectors.toMap(KnowledgeNode::getOriginNodeId, Function.identity())));
+        // 副本合并过新版图谱后，旧版题目的节点按名称找回副本里的对应节点
+        List<Long> missing = masterNodeIds.stream().filter(id -> !out.containsKey(id)).toList();
+        if (!missing.isEmpty()) {
+            Map<String, KnowledgeNode> byName = nodes.findByGraphIdOrderByOrdinal(copy.getId()).stream()
+                    .filter(n -> !n.isDeleted())
+                    .collect(Collectors.toMap(n -> GraphDiff.key(n.getName()), Function.identity(), (a, b) -> a));
+            nodes.findAllById(missing).forEach(m -> {
+                KnowledgeNode c = byName.get(GraphDiff.key(m.getName()));
+                if (c != null) {
+                    out.put(m.getId(), c);
+                }
+            });
+        }
+        return out;
     }
 
     // ---------- 学习者对自己副本的轻量修正 ----------

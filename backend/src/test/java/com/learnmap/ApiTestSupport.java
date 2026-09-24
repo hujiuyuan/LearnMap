@@ -29,6 +29,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 public abstract class ApiTestSupport {
 
+    /** 三小节的一元一次方程示例书 */
+    protected static final String BOOK = LearningFlowIntegrationTest.BOOK;
+
     @Autowired protected MockMvc mvc;
     @Autowired protected ObjectMapper json;
     @Autowired protected QuestionRepository questions;
@@ -41,15 +44,22 @@ public abstract class ApiTestSupport {
     }
 
     protected JsonNode upload(long userId, String text) throws Exception {
+        return upload(userId, text, null);
+    }
+
+    protected JsonNode upload(long userId, String text, String reviewMode) throws Exception {
         var req = multipart("/api/books")
                 .file(new MockMultipartFile("file", "equation.md", "text/markdown", text.getBytes(StandardCharsets.UTF_8)))
                 .param("title", "一元一次方程");
+        if (reviewMode != null) {
+            req.param("reviewMode", reviewMode);
+        }
         return call(req, userId, status().isCreated());
     }
 
     /** 学习者自己传一本书并分给自己，返回图谱副本 id */
     protected long assignedGraph(long learner) throws Exception {
-        long bookId = upload(learner, LearningFlowIntegrationTest.BOOK).at("/book/id").asLong();
+        long bookId = upload(learner, BOOK).at("/book/id").asLong();
         return call(post("/api/books/" + bookId + "/assign"), learner, status().isOk()).get("id").asLong();
     }
 

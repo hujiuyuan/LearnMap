@@ -4,6 +4,14 @@
       <view class="title">{{ node.name }}</view>
       <view class="muted">{{ statusLabel }}<text v-if="node.mastery != null"> · 掌握度 {{ Math.round(node.mastery * 100) }}%</text></view>
       <view class="definition">{{ node.definition }}</view>
+      <view v-if="detail && detail.sources.length" class="sources">
+        <view class="muted">原文出处</view>
+        <view v-for="(src, i) in detail.sources" :key="i" class="source">{{ src }}</view>
+      </view>
+      <view v-if="detail" class="muted">
+        <text v-if="prereqs.length">前置：{{ prereqs.join('、') }}　</text>
+        <text v-if="nexts.length">后续：{{ nexts.join('、') }}</text>
+      </view>
     </view>
 
     <view class="card">
@@ -67,7 +75,12 @@ function go(mode) {
   }
 }
 
+const detail = ref(null)
+const prereqs = computed(() => (detail.value ? detail.value.relations.filter((r) => r.incoming && r.type === 'PREREQUISITE' && !r.disputed).map((r) => r.otherName) : []))
+const nexts = computed(() => (detail.value ? detail.value.relations.filter((r) => !r.incoming && r.type === 'PREREQUISITE' && !r.disputed).map((r) => r.otherName) : []))
+
 async function load() {
+  detail.value = await api.nodeDetail(graphId.value, nodeId.value)
   const graph = await api.graph(graphId.value)
   node.value = graph.nodes.find((n) => String(n.id) === String(nodeId.value))
   questions.value = await api.questions(graphId.value, nodeId.value)
@@ -96,6 +109,17 @@ onLoad((q) => {
   flex-wrap: wrap;
   gap: 12rpx;
   margin-top: 12rpx;
+}
+.sources {
+  margin: 12rpx 0;
+}
+.source {
+  font-size: 24rpx;
+  color: #555;
+  background: #f5f6f8;
+  padding: 12rpx;
+  margin-top: 8rpx;
+  border-radius: 8rpx;
 }
 .definition {
   margin-top: 16rpx;

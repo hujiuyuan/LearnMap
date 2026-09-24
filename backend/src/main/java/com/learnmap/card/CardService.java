@@ -9,6 +9,7 @@ import com.learnmap.evidence.EvidenceResult;
 import com.learnmap.graph.KnowledgeNode;
 import com.learnmap.graph.KnowledgeNodeRepository;
 import com.learnmap.graph.LearnerGraphCreated;
+import com.learnmap.graph.LearnerNodesAdded;
 import com.learnmap.mastery.MasteryService;
 import com.learnmap.mastery.NodeMastery;
 import com.learnmap.user.AppUser;
@@ -56,13 +57,24 @@ public class CardService {
     @EventListener
     @Transactional
     public void onLearnerGraphCreated(LearnerGraphCreated event) {
+        createCards(event.learnerId(), nodes.findByGraphIdOrderByOrdinal(event.graphId()));
+    }
+
+    /** 副本合并了新版图谱，新加的节点补卡片 */
+    @EventListener
+    @Transactional
+    public void onLearnerNodesAdded(LearnerNodesAdded event) {
+        createCards(event.learnerId(), nodes.findAllById(event.nodeIds()));
+    }
+
+    private void createCards(Long learnerId, List<KnowledgeNode> list) {
         LocalDateTime now = LocalDateTime.now(clock);
-        for (KnowledgeNode n : nodes.findByGraphIdOrderByOrdinal(event.graphId())) {
+        for (KnowledgeNode n : list) {
             if (n.isDeleted() || n.getDefinition() == null || n.getDefinition().isBlank()) {
                 continue;
             }
             ReviewCard c = new ReviewCard();
-            c.setLearnerId(event.learnerId());
+            c.setLearnerId(learnerId);
             c.setNodeId(n.getId());
             c.setFront("「" + n.getName() + "」是什么？先在心里说一遍，再翻面。");
             c.setBack(n.getDefinition());

@@ -112,7 +112,7 @@ function switchUser(id) {
 
 async function openBook(book) {
   if (me.value.role !== 'LEARNER') {
-    uni.showToast({ title: '在“我的学习者”里把书分配给学习者', icon: 'none' })
+    uni.navigateTo({ url: `/pages/editor/editor?bookId=${book.id}` })
     return
   }
   // 学习者打开书时拿到自己的图谱副本（第一次打开会复制一份）
