@@ -7,3 +7,5 @@ spring:
 learnmap:
   demo:
     enabled: false
+  scheduling:
+    enabled: false

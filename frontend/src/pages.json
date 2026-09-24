@@ -31,6 +31,14 @@
 		{
 			"path": "pages/retest/retest",
 			"style": { "navigationBarTitleText": "延时复测" }
+		},
+		{
+			"path": "pages/goal/goal",
+			"style": { "navigationBarTitleText": "学习目标" }
+		},
+		{
+			"path": "pages/plan/plan",
+			"style": { "navigationBarTitleText": "今日计划" }
 		}
 	],
 	"globalStyle": {

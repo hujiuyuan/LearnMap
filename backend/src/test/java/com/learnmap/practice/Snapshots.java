@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 /** 测试用：手工拼一张图谱快照 */
-class Snapshots {
+public class Snapshots {
 
     final Map<Long, KnowledgeNode> nodes = new LinkedHashMap<>();
     final Map<Long, List<Long>> prereqs = new HashMap<>();
@@ -25,7 +25,7 @@ class Snapshots {
     final Map<Long, NodeMastery> mastery = new HashMap<>();
     final Map<Long, Long> chapter = new HashMap<>();
 
-    Snapshots node(long id, NodeType type, long chapterId) {
+    public Snapshots node(long id, NodeType type, long chapterId) {
         KnowledgeNode n = new KnowledgeNode();
         ReflectionTestUtils.setField(n, "id", id);
         n.setName("N" + id);
@@ -41,18 +41,18 @@ class Snapshots {
         return this;
     }
 
-    Snapshots prereq(long from, long to) {
+    public Snapshots prereq(long from, long to) {
         prereqs.computeIfAbsent(to, k -> new ArrayList<>()).add(from);
         return this;
     }
 
-    Snapshots contrast(long a, long b) {
+    public Snapshots contrast(long a, long b) {
         contrasts.computeIfAbsent(a, k -> new HashSet<>()).add(b);
         contrasts.computeIfAbsent(b, k -> new HashSet<>()).add(a);
         return this;
     }
 
-    Snapshots mastery(long id, double m, double c) {
+    public Snapshots mastery(long id, double m, double c) {
         NodeMastery nm = new NodeMastery(1L, id);
         nm.setMastery(m);
         nm.setConfidence(c);
@@ -60,12 +60,12 @@ class Snapshots {
         return this;
     }
 
-    Snapshots noQuestions(long id) {
+    public Snapshots noQuestions(long id) {
         questions.remove(id);
         return this;
     }
 
-    LearnerGraphSnapshot build() {
+    public LearnerGraphSnapshot build() {
         return new LearnerGraphSnapshot(1L, 1L, nodes, prereqs, contrasts, questions, mastery, chapter);
     }
 

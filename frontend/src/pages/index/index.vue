@@ -12,6 +12,14 @@
       <view v-if="me" class="muted">{{ me.displayName }} · {{ roleLabel[me.role] }}</view>
     </view>
 
+    <view class="card" v-if="me && me.role === 'LEARNER'" @click="openPlan">
+      <view class="title">今日计划</view>
+      <view class="muted" v-if="!plan || !plan.goal">还没有学习目标：打开一本书，点“设学习目标”</view>
+      <view class="muted" v-else-if="!plan.totalMinutes">今天没有安排任务</view>
+      <view class="muted" v-else>今天 {{ plan.totalMinutes }} 分钟，已完成 {{ plan.doneMinutes }} 分钟</view>
+      <view class="warn" v-if="plan && plan.goal && plan.goal.warning">{{ plan.goal.warning }}</view>
+    </view>
+
     <view class="card" v-if="me && me.role === 'LEARNER'" @click="openReview">
       <view class="title">今日复习</view>
       <view class="muted">{{ dueCount ? `有 ${dueCount} 张卡片到期，先回想再翻面` : '今天没有到期的卡片' }}</view>
@@ -51,6 +59,7 @@ const me = ref(null)
 const books = ref([])
 const dueCount = ref(0)
 const retestCount = ref(0)
+const plan = ref(null)
 
 async function load() {
   if (!userId.value) return
@@ -58,6 +67,11 @@ async function load() {
   books.value = await api.books()
   dueCount.value = me.value.role === 'LEARNER' ? (await api.dueCards()).dueCount : 0
   retestCount.value = me.value.role === 'LEARNER' ? (await api.dueRetests()).length : 0
+  plan.value = me.value.role === 'LEARNER' ? await api.plan(me.value.id) : null
+}
+
+function openPlan() {
+  if (plan.value && plan.value.goal) uni.navigateTo({ url: '/pages/plan/plan' })
 }
 
 function openRetest() {
@@ -92,6 +106,10 @@ onShow(load)
   display: flex;
   gap: 12rpx;
   margin: 16rpx 0;
+}
+.warn {
+  color: #d54941;
+  margin-top: 8rpx;
 }
 .book {
   padding: 20rpx 0;

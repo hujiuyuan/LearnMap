@@ -10,5 +10,7 @@ public interface ReviewCardRepository extends JpaRepository<ReviewCard, Long> {
 
     List<ReviewCard> findByLearnerIdAndDueAtLessThanEqualOrderByDueAtAsc(Long learnerId, LocalDateTime now, Pageable page);
 
+    List<ReviewCard> findByLearnerIdAndDueAtBefore(Long learnerId, LocalDateTime before);
+
     long countByLearnerIdAndDueAtLessThanEqual(Long learnerId, LocalDateTime now);
 }

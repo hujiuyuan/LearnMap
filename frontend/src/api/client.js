@@ -55,6 +55,12 @@ export const api = {
   feynman: (graphId, nodeId, body) => request('POST', `/api/graphs/${graphId}/nodes/${nodeId}/feynman`, body),
   dueRetests: () => request('GET', '/api/retests/due'),
   answerRetest: (id, answer) => request('POST', `/api/retests/${id}/answer`, { answer }),
+  createGoal: (body) => request('POST', '/api/goals', body),
+  plan: (learnerId) => request('GET', `/api/learners/${learnerId}/plan`),
+  replan: (learnerId) => request('POST', `/api/learners/${learnerId}/plan/replan`),
+  markTask: (taskId, status) => request('POST', `/api/plan/tasks/${taskId}`, { status }),
+  startPomodoro: (taskId, minutes) => request('POST', '/api/pomodoros', { taskId, minutes }),
+  finishPomodoro: (id, completed, interruptions) => request('POST', `/api/pomodoros/${id}/finish`, { completed, interruptions }),
 }
 
 export function parseOptions(optionsJson) {
