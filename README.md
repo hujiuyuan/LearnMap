@@ -30,7 +30,9 @@ npm run dev:h5
 
 打开 http://localhost:5173 ，点“学习者 小明” → 打开示例书 → 做入门诊断，看诊断报告 → 回到知识地图看点亮情况；首页的“今日复习”可以翻卡片。
 
-演示账号：运维 id=1、辅导者（王老师）id=2、学习者（小明）id=3。登录还没做，接口用请求头 `X-User-Id` 表示当前用户。
+演示账号（仅 dev 模式）：`ops` / `tutor`（王老师）/ `learner`（小明），密码都是 `demo123`，登录页上有一键登录按钮。
+
+正式部署：`learnmap.auth.allow-user-id-header` 默认是 `false`，接口只认登录令牌（`Authorization: Bearer …`）。第一个运维账号通过环境变量 `LEARNMAP_ADMIN_PASSWORD` 创建（用户名 `admin`），不设就不建。dev / test 模式额外允许用请求头 `X-User-Id` 指定当前用户，方便接口测试。
 
 使用 MySQL：
 
@@ -45,7 +47,8 @@ cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=mysql
 
 **已经能跑**
 - 三种角色（学习者 / 辅导者 / 运维），辅导者绑定名下学习者，书的可见范围按方案 2.5 执行
-- 上传 TXT / Markdown 书：按标题解析出 章 → 节 → 小节，切原文块，生成书本图谱和题目
+- 账号：用户名 + 密码注册（学习者或辅导者）和登录，令牌 30 天有效，可退出；运维账号只能由运维创建
+- 上传书：TXT / Markdown、EPUB（按目录顺序，h1–h3 当标题）、Word .docx（“标题 1/2/3”样式当标题）、PDF（有文字层直接取文字，没有就当扫描版逐页 OCR），也可以一次传多张拍照的书页或一个图片 zip，按顺序 OCR 后拼成一本书。按标题解析出 章 → 节 → 小节，切原文块，生成书本图谱和题目
 - 校对规则：学习者上传的直接发布（标“未校对”）；辅导者 / 运维可以选“先校对再发布”
 - 每个学习者一份图谱副本，互不影响；学习者可以删节点、标记“这条前置关系不对”
 - 作答 → 证据 → 掌握度：一题多解按实际用的解法记分，分步作答只扣出错那一步的知识点；未校对节点 Confidence 上限 0.6
@@ -69,8 +72,7 @@ cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=mysql
 
 **还是占位（stub）**
 - **AI**（按计划最后对接）：图谱抽取、出题、费曼评分、OCR 都走 `AiProvider` 接口，目前只有离线假实现 `StubAiProvider`——每个小节抽成一个知识点、同章按顺序串前置、每个节点出一道判断题。接真实模型需要 API key，通过环境变量 `LEARNMAP_AI_PROVIDER` / `LEARNMAP_AI_API_KEY` / `LEARNMAP_AI_MODEL` 配置，不写进代码
-- **登录**：用 `X-User-Id` 请求头代替
-- **EPUB / PDF / Word / 图片（OCR）导入**：会直接提示“还在开发中”，计划由单独的 Python 导入流水线服务处理
+- **OCR**：图片、扫描版 PDF 和手写费曼讲解要靠 AI 识别文字，stub 不支持，会提示“请配置真实的 AI 提供方”；文字版 PDF、EPUB、Word、TXT / Markdown 不受影响
 
 **还没做（后续 PR）**
-EPUB / PDF / Word / 图片导入，账号密码登录，接入真实 AI 模型。
+接入真实 AI 模型。

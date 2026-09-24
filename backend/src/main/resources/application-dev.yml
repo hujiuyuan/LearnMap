@@ -9,5 +9,7 @@ spring:
       enabled: true
 
 learnmap:
+  auth:
+    allow-user-id-header: true
   demo:
     enabled: true

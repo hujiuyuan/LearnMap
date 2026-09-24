@@ -1,5 +1,7 @@
 package com.learnmap.book;
 
+import com.learnmap.book.BookTextExtractor.Extracted;
+import com.learnmap.book.BookTextExtractor.Upload;
 import com.learnmap.book.TextBookParser.ParsedSection;
 import com.learnmap.common.NotFoundException;
 import com.learnmap.graph.GraphGenerationService;
@@ -11,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -30,6 +32,7 @@ public class BookService {
     private final BookAccessPolicy access;
     private final UserService users;
     private final GraphGenerationService graphGeneration;
+    private final BookTextExtractor extractor;
 
     public record ImportResult(Book book, KnowledgeGraph graph) {
     }
@@ -42,9 +45,26 @@ public class BookService {
      */
     @Transactional
     public ImportResult importBook(AppUser actor, String title, String author, String filename, byte[] content, ReviewMode reviewMode) {
-        FileFormat format = formatOf(filename);
-        if (format != FileFormat.TXT && format != FileFormat.MARKDOWN) {
-            throw new IllegalArgumentException("暂时只支持 TXT 和 Markdown；" + format + " 的导入流水线还在开发中");
+        return importBook(actor, title, author, List.of(new Upload(filename, content)), reviewMode);
+    }
+
+    /**
+     * @param files 一般是一个文件；拍的书页照片可以一次传多张（按上传顺序识别）
+     */
+    @Transactional
+    public ImportResult importBook(AppUser actor, String title, String author, List<Upload> files, ReviewMode reviewMode) {
+        if (files.isEmpty()) {
+            throw new IllegalArgumentException("请选择要上传的文件");
+        }
+        FileFormat format = formatOf(files.get(0).filename());
+        if (files.size() > 1 && format != FileFormat.IMAGES) {
+            throw new IllegalArgumentException("一次只能上传一本书；多个文件只支持书页照片");
+        }
+        Extracted extracted;
+        try {
+            extracted = extractor.extract(format, files);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("文件读不出来：" + e.getMessage());
         }
         Book book = new Book();
         book.setTitle(title);
@@ -53,12 +73,12 @@ public class BookService {
         book.setUploaderRole(actor.getRole());
         book.setVisibility(BookAccessPolicy.visibilityFor(actor.getRole()));
         book.setReviewMode(actor.getRole() == Role.LEARNER || reviewMode == null ? ReviewMode.NONE : reviewMode);
-        book.setContentKind(ContentKind.TEXT);
+        book.setContentKind(extracted.kind());
         book.setFileFormat(format);
         book.setStatus(BookStatus.PROCESSING);
         book = books.save(book);
 
-        List<ParsedSection> parsed = TextBookParser.parse(new String(content, StandardCharsets.UTF_8));
+        List<ParsedSection> parsed = TextBookParser.parse(extracted.text());
         if (parsed.isEmpty()) {
             throw new IllegalArgumentException("没有解析出任何内容");
         }
@@ -145,9 +165,9 @@ public class BookService {
         if (name.endsWith(".docx")) {
             return FileFormat.DOCX;
         }
-        if (name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".zip")) {
+        if (name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".webp") || name.endsWith(".zip")) {
             return FileFormat.IMAGES;
         }
-        throw new IllegalArgumentException("不认识的文件格式：" + filename);
+        throw new IllegalArgumentException("不支持的文件格式：" + filename + "（支持 TXT、Markdown、EPUB、PDF、Word .docx、书页照片）");
     }
 }

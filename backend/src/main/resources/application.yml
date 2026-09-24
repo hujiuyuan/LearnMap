@@ -29,5 +29,10 @@ learnmap:
     provider: ${LEARNMAP_AI_PROVIDER:stub}
     api-key: ${LEARNMAP_AI_API_KEY:}
     model: ${LEARNMAP_AI_MODEL:}
+  auth:
+    # 只认登录令牌；dev / test 里打开，允许用请求头 X-User-Id 直接指定用户
+    allow-user-id-header: false
+    token-days: 30
+    admin-password: ${LEARNMAP_ADMIN_PASSWORD:}
   demo:
     enabled: false

@@ -1,15 +1,11 @@
 <template>
   <view>
     <view class="card">
-      <view class="title">当前身份</view>
-      <view class="muted">登录还没做，先用演示账号切换（后端 dev 模式会自动创建）</view>
-      <view class="users">
-        <button v-for="u in demoUsers" :key="u.id" size="mini"
-                :type="userId === u.id ? 'primary' : 'default'" @click="switchUser(u.id)">
-          {{ u.label }}
-        </button>
+      <view class="me" v-if="me">
+        <text class="title">{{ me.displayName }}</text>
+        <text class="muted">{{ roleLabel[me.role] }} · {{ me.username }}</text>
+        <text class="link" @click="logout">退出登录</text>
       </view>
-      <view v-if="me" class="muted">{{ me.displayName }} · {{ roleLabel[me.role] }}</view>
     </view>
 
     <view class="card" v-if="highlights">
@@ -47,7 +43,10 @@
     </view>
 
     <view class="card">
-      <view class="title">书架</view>
+      <view class="shelf-head">
+        <text class="title">书架</text>
+        <button class="shelf-btn" size="mini" type="primary" @click="go('/pages/upload/upload')">上传书</button>
+      </view>
       <view v-if="!books.length" class="muted">还没有可以看的书</view>
       <view v-for="b in books" :key="b.id" class="book" @click="openBook(b)">
         <view>{{ b.title }}</view>
@@ -60,17 +59,11 @@
 <script setup>
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { api, currentUserId, setCurrentUserId } from '../../api/client'
+import { api, clearSession, token } from '../../api/client'
 
-const demoUsers = [
-  { id: 3, label: '学习者 小明' },
-  { id: 2, label: '辅导者 王老师' },
-  { id: 1, label: '运维' },
-]
 const roleLabel = { LEARNER: '学习者', TUTOR: '辅导者', OPS: '平台运维' }
 const visibilityLabel = { PRIVATE: '我上传的', TUTOR_GROUP: '辅导者的书', PUBLIC: '平台预置' }
 
-const userId = ref(currentUserId())
 const me = ref(null)
 const books = ref([])
 const dueCount = ref(0)
@@ -79,7 +72,10 @@ const plan = ref(null)
 const highlights = ref(null)
 
 async function load() {
-  if (!userId.value) return
+  if (!token()) {
+    uni.reLaunch({ url: '/pages/login/login' })
+    return
+  }
   me.value = await api.me()
   books.value = await api.books()
   dueCount.value = me.value.role === 'LEARNER' ? (await api.dueCards()).dueCount : 0
@@ -104,10 +100,13 @@ function openReview() {
   if (dueCount.value) uni.navigateTo({ url: '/pages/review/review' })
 }
 
-function switchUser(id) {
-  setCurrentUserId(id)
-  userId.value = id
-  load()
+async function logout() {
+  try {
+    await api.logout()
+  } finally {
+    clearSession()
+    uni.reLaunch({ url: '/pages/login/login' })
+  }
 }
 
 async function openBook(book) {
@@ -124,10 +123,22 @@ onShow(load)
 </script>
 
 <style>
-.users {
+.me {
   display: flex;
-  gap: 12rpx;
-  margin: 16rpx 0;
+  gap: 16rpx;
+  align-items: baseline;
+}
+.link {
+  color: #0052d9;
+  margin-left: auto;
+}
+.shelf-btn {
+  margin: 0;
+}
+.shelf-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .warn {
   color: #d54941;
