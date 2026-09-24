@@ -1,0 +1,18 @@
+# 本地 MySQL 8：docker compose up -d mysql
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: learnmap
+      MYSQL_USER: learnmap
+      MYSQL_PASSWORD: learnmap
+      MYSQL_ROOT_PASSWORD: learnmap-root
+      TZ: Asia/Shanghai
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci"]
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:

@@ -1,0 +1,6 @@
+# 连接 MySQL 8：docker compose up -d mysql，然后 --spring.profiles.active=mysql
+spring:
+  datasource:
+    url: ${LEARNMAP_DB_URL:jdbc:mysql://localhost:3306/learnmap?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
+    username: ${LEARNMAP_DB_USER:learnmap}
+    password: ${LEARNMAP_DB_PASSWORD:learnmap}
