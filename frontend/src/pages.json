@@ -11,6 +11,14 @@
 		{
 			"path": "pages/node/node",
 			"style": { "navigationBarTitleText": "知识点" }
+		},
+		{
+			"path": "pages/diagnosis/diagnosis",
+			"style": { "navigationBarTitleText": "入门诊断" }
+		},
+		{
+			"path": "pages/review/review",
+			"style": { "navigationBarTitleText": "今日复习" }
 		}
 	],
 	"globalStyle": {

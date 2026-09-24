@@ -11,6 +11,7 @@ import com.learnmap.user.AppUser;
 import com.learnmap.user.Role;
 import com.learnmap.user.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,7 @@ public class GraphService {
     private final BookRepository books;
     private final BookAccessPolicy access;
     private final UserService users;
+    private final ApplicationEventPublisher events;
 
     // ---------- 查询 ----------
 
@@ -206,6 +208,7 @@ public class GraphService {
             c.setReviewStatus(r.getReviewStatus());
             relations.save(c);
         }
+        events.publishEvent(new LearnerGraphCreated(copy.getId(), learnerId));
         return copy;
     }
 

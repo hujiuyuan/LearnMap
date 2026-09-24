@@ -3,6 +3,7 @@
     <view class="card">
       <view class="title">{{ lit }} / {{ total }} 个知识点已点亮</view>
       <view class="muted" v-if="graph && graph.reviewStatus === 'UNREVIEWED'">这张图谱由 AI 生成、未经人工校对，诊断结论仅供参考</view>
+      <button class="diag" size="mini" type="primary" @click="openDiagnosis">{{ lit || tested ? '继续 / 重新诊断' : '开始入门诊断' }}</button>
     </view>
 
     <!-- 移动端默认用“按章列表”展示，不画一大团网（产品方案 2.6） -->
@@ -33,6 +34,7 @@ const sections = ref([])
 
 const status = nodeStatus
 const total = computed(() => (graph.value ? graph.value.nodes.length : 0))
+const tested = computed(() => (graph.value ? graph.value.nodes.filter((n) => n.mastery != null).length : 0))
 const lit = computed(() => (graph.value ? graph.value.nodes.filter((n) => nodeStatus(n).key === 'good').length : 0))
 
 const chapters = computed(() => {
@@ -60,6 +62,10 @@ function prereqNames(node) {
     .join('、')
 }
 
+function openDiagnosis() {
+  uni.navigateTo({ url: `/pages/diagnosis/diagnosis?graphId=${graphId.value}` })
+}
+
 function openNode(n) {
   uni.navigateTo({ url: `/pages/node/node?graphId=${graphId.value}&nodeId=${n.id}` })
 }
@@ -78,6 +84,9 @@ onShow(load)
 </script>
 
 <style>
+.diag {
+  margin-top: 16rpx;
+}
 .node {
   display: flex;
   align-items: center;

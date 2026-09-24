@@ -45,6 +45,11 @@ export const api = {
   graph: (graphId) => request('GET', `/api/graphs/${graphId}`),
   questions: (graphId, nodeId) => request('GET', `/api/graphs/${graphId}/nodes/${nodeId}/questions`),
   answer: (body) => request('POST', '/api/answers', body),
+  startDiagnostic: (graphId) => request('POST', `/api/graphs/${graphId}/diagnostics`),
+  answerDiagnostic: (sessionId, itemId, body) => request('POST', `/api/diagnostics/${sessionId}/items/${itemId}/answer`, body),
+  diagnosticReport: (sessionId) => request('GET', `/api/diagnostics/${sessionId}/report`),
+  dueCards: () => request('GET', '/api/cards/due'),
+  reviewCard: (cardId, rating) => request('POST', `/api/cards/${cardId}/review`, { rating }),
 }
 
 // 节点状态（产品方案 2.6）：绿 已掌握 / 黄 学习中 / 红 疑似薄弱 / 虚线 数据不足 / 灰 未学

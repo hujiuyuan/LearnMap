@@ -12,6 +12,11 @@
       <view v-if="me" class="muted">{{ me.displayName }} · {{ roleLabel[me.role] }}</view>
     </view>
 
+    <view class="card" v-if="me && me.role === 'LEARNER'" @click="openReview">
+      <view class="title">今日复习</view>
+      <view class="muted">{{ dueCount ? `有 ${dueCount} 张卡片到期，先回想再翻面` : '今天没有到期的卡片' }}</view>
+    </view>
+
     <view class="card">
       <view class="title">书架</view>
       <view v-if="!books.length" class="muted">还没有可以看的书</view>
@@ -39,11 +44,17 @@ const visibilityLabel = { PRIVATE: '我上传的', TUTOR_GROUP: '辅导者的书
 const userId = ref(currentUserId())
 const me = ref(null)
 const books = ref([])
+const dueCount = ref(0)
 
 async function load() {
   if (!userId.value) return
   me.value = await api.me()
   books.value = await api.books()
+  dueCount.value = me.value.role === 'LEARNER' ? (await api.dueCards()).dueCount : 0
+}
+
+function openReview() {
+  if (dueCount.value) uni.navigateTo({ url: '/pages/review/review' })
 }
 
 function switchUser(id) {
