@@ -19,6 +19,18 @@
 		{
 			"path": "pages/review/review",
 			"style": { "navigationBarTitleText": "今日复习" }
+		},
+		{
+			"path": "pages/practice/practice",
+			"style": { "navigationBarTitleText": "练习" }
+		},
+		{
+			"path": "pages/feynman/feynman",
+			"style": { "navigationBarTitleText": "费曼讲解" }
+		},
+		{
+			"path": "pages/retest/retest",
+			"style": { "navigationBarTitleText": "延时复测" }
 		}
 	],
 	"globalStyle": {

@@ -2,6 +2,7 @@ package com.learnmap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.learnmap.question.QuestionRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -33,6 +34,7 @@ class DiagnosticAndCardsIntegrationTest {
 
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
+    @Autowired QuestionRepository questions;
 
     @Test
     void threeRoundDiagnosisFindsTheRootCause() throws Exception {
@@ -48,15 +50,15 @@ class DiagnosticAndCardsIntegrationTest {
         assertThat(call(post("/api/graphs/" + graphId + "/diagnostics"), learner, status().isOk()).get("id").asLong())
                 .isEqualTo(sessionId);
 
-        // 广度扫描：等式的性质 对，移项 错，解一元一次方程 错（stub 每个节点一道判断题，正确答案是“正确”）
-        s = answer(learner, sessionId, s, "正确");
-        s = answer(learner, sessionId, s, "错误");
-        s = answer(learner, sessionId, s, "错误");
+        // 广度扫描：等式的性质 对，移项 错，解一元一次方程 错
+        s = answer(learner, sessionId, s, true);
+        s = answer(learner, sessionId, s, false);
+        s = answer(learner, sessionId, s, false);
 
         // 两个错题的前置都测过了，定向诊断没有新题，直接进入验证轮：只验证疑似根因“移项”
         assertThat(s.get("round").asInt()).isEqualTo(3);
         assertThat(s.get("totalInRound").asInt()).isEqualTo(1);
-        s = answer(learner, sessionId, s, "错误");
+        s = answer(learner, sessionId, s, false);
         assertThat(s.get("status").asText()).isEqualTo("COMPLETED");
         assertThat(s.get("next").isNull()).isTrue();
 
@@ -105,8 +107,9 @@ class DiagnosticAndCardsIntegrationTest {
         assertThat(call(get("/api/cards/due"), learner, status().isOk()).get("dueCount").asLong()).isEqualTo(1);
     }
 
-    private JsonNode answer(long learner, long sessionId, JsonNode session, String answer) throws Exception {
+    private JsonNode answer(long learner, long sessionId, JsonNode session, boolean correct) throws Exception {
         long itemId = session.get("next").get("id").asLong();
+        String answer = correct ? questions.findById(session.at("/next/questionId").asLong()).orElseThrow().getAnswer() : "不知道";
         String body = json.writeValueAsString(Map.of("answer", answer, "selfConfidence", "SURE"));
         return call(post("/api/diagnostics/" + sessionId + "/items/" + itemId + "/answer")
                 .contentType(MediaType.APPLICATION_JSON).content(body), learner, status().isOk()).get("session");

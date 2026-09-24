@@ -3,7 +3,10 @@
     <view class="card">
       <view class="title">{{ lit }} / {{ total }} 个知识点已点亮</view>
       <view class="muted" v-if="graph && graph.reviewStatus === 'UNREVIEWED'">这张图谱由 AI 生成、未经人工校对，诊断结论仅供参考</view>
-      <button class="diag" size="mini" type="primary" @click="openDiagnosis">{{ lit || tested ? '继续 / 重新诊断' : '开始入门诊断' }}</button>
+      <view class="actions">
+        <button size="mini" type="primary" @click="openDiagnosis">{{ lit || tested ? '继续 / 重新诊断' : '开始入门诊断' }}</button>
+        <button size="mini" @click="openInterleaved">交错练习</button>
+      </view>
     </view>
 
     <!-- 移动端默认用“按章列表”展示，不画一大团网（产品方案 2.6） -->
@@ -62,6 +65,10 @@ function prereqNames(node) {
     .join('、')
 }
 
+function openInterleaved() {
+  uni.navigateTo({ url: `/pages/practice/practice?graphId=${graphId.value}&mode=INTERLEAVED` })
+}
+
 function openDiagnosis() {
   uni.navigateTo({ url: `/pages/diagnosis/diagnosis?graphId=${graphId.value}` })
 }
@@ -84,7 +91,9 @@ onShow(load)
 </script>
 
 <style>
-.diag {
+.actions {
+  display: flex;
+  gap: 12rpx;
   margin-top: 16rpx;
 }
 .node {

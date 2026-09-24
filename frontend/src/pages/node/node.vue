@@ -7,6 +7,15 @@
     </view>
 
     <view class="card">
+      <view class="title">换一种方式学</view>
+      <view class="modes">
+        <button size="mini" @click="go('feynman')">费曼讲解</button>
+        <button size="mini" @click="go('DELIBERATE')">刻意练习</button>
+        <button size="mini" @click="go('FIRST_PRINCIPLES')">以它为目标补基础</button>
+      </view>
+    </view>
+
+    <view class="card">
       <view class="title">小测</view>
       <view v-if="!questions.length" class="muted">这个知识点还没有题目</view>
       <view v-for="q in questions" :key="q.id" class="question">
@@ -49,6 +58,15 @@ function options(q) {
   }
 }
 
+function go(mode) {
+  const q = `graphId=${graphId.value}&nodeId=${nodeId.value}`
+  if (mode === 'feynman') {
+    uni.navigateTo({ url: `/pages/feynman/feynman?${q}&name=${encodeURIComponent(node.value.name)}` })
+  } else {
+    uni.navigateTo({ url: `/pages/practice/practice?${q}&mode=${mode}` })
+  }
+}
+
 async function load() {
   const graph = await api.graph(graphId.value)
   node.value = graph.nodes.find((n) => String(n.id) === String(nodeId.value))
@@ -73,6 +91,12 @@ onLoad((q) => {
 </script>
 
 <style>
+.modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
 .definition {
   margin-top: 16rpx;
   line-height: 1.7;

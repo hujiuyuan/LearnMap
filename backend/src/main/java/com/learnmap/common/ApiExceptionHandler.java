@@ -24,6 +24,11 @@ public class ApiExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
+    @ExceptionHandler(UnsupportedOperationException.class)
+    ProblemDetail unsupported(UnsupportedOperationException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_IMPLEMENTED, e.getMessage());
+    }
+
     @ExceptionHandler(MissingRequestHeaderException.class)
     ProblemDetail unauthenticated(MissingRequestHeaderException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "缺少当前用户（请求头 " + CurrentUser.HEADER + "）");

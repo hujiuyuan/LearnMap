@@ -50,6 +50,19 @@ export const api = {
   diagnosticReport: (sessionId) => request('GET', `/api/diagnostics/${sessionId}/report`),
   dueCards: () => request('GET', '/api/cards/due'),
   reviewCard: (cardId, rating) => request('POST', `/api/cards/${cardId}/review`, { rating }),
+  startPractice: (graphId, mode, targetNodeId) => request('POST', `/api/graphs/${graphId}/practice`, { mode, targetNodeId }),
+  answerPractice: (sessionId, itemId, body) => request('POST', `/api/practice/${sessionId}/items/${itemId}/answer`, body),
+  feynman: (graphId, nodeId, body) => request('POST', `/api/graphs/${graphId}/nodes/${nodeId}/feynman`, body),
+  dueRetests: () => request('GET', '/api/retests/due'),
+  answerRetest: (id, answer) => request('POST', `/api/retests/${id}/answer`, { answer }),
+}
+
+export function parseOptions(optionsJson) {
+  try {
+    return optionsJson ? JSON.parse(optionsJson) : []
+  } catch (e) {
+    return []
+  }
 }
 
 // 节点状态（产品方案 2.6）：绿 已掌握 / 黄 学习中 / 红 疑似薄弱 / 虚线 数据不足 / 灰 未学

@@ -17,6 +17,11 @@
       <view class="muted">{{ dueCount ? `有 ${dueCount} 张卡片到期，先回想再翻面` : '今天没有到期的卡片' }}</view>
     </view>
 
+    <view class="card" v-if="retestCount" @click="openRetest">
+      <view class="title">延时复测</view>
+      <view class="muted">{{ retestCount }} 个知识点到了复测时间，看看还记不记得</view>
+    </view>
+
     <view class="card">
       <view class="title">书架</view>
       <view v-if="!books.length" class="muted">还没有可以看的书</view>
@@ -45,12 +50,18 @@ const userId = ref(currentUserId())
 const me = ref(null)
 const books = ref([])
 const dueCount = ref(0)
+const retestCount = ref(0)
 
 async function load() {
   if (!userId.value) return
   me.value = await api.me()
   books.value = await api.books()
   dueCount.value = me.value.role === 'LEARNER' ? (await api.dueCards()).dueCount : 0
+  retestCount.value = me.value.role === 'LEARNER' ? (await api.dueRetests()).length : 0
+}
+
+function openRetest() {
+  uni.navigateTo({ url: '/pages/retest/retest' })
 }
 
 function openReview() {

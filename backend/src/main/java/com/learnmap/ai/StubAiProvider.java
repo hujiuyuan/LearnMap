@@ -57,6 +57,10 @@ public class StubAiProvider implements AiProvider {
             questions.add(new GeneratedQuestion("TRUE_FALSE",
                     "判断：关于「" + node.name() + "」，下面的说法是否正确？\n" + node.definition(),
                     List.of("正确", "错误"), "正确", 0.3));
+            // 填空：把定义里的名称挖掉，让学习者说出是哪个知识点
+            String masked = node.definition().replace(node.name(), "____");
+            questions.add(new GeneratedQuestion("FILL_BLANK",
+                    "填空：下面说的是哪个知识点？\n" + masked, List.of(), node.name(), 0.5));
         }
         return questions.subList(0, Math.min(count, questions.size()));
     }
