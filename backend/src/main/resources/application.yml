@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: learnmap-server
+  profiles:
+    default: dev
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+learnmap:
+  ai:
+    # stub：离线假实现，不调用任何模型。真实提供方接入后改这里。
+    provider: ${LEARNMAP_AI_PROVIDER:stub}
+    api-key: ${LEARNMAP_AI_API_KEY:}
+    model: ${LEARNMAP_AI_MODEL:}
+  demo:
+    enabled: false
