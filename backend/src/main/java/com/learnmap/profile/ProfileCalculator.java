@@ -61,6 +61,7 @@ public final class ProfileCalculator {
             Map.entry(ActivityType.PRACTICE.name(), "刻意练习 / 第一性原理"),
             Map.entry(ActivityType.INTERLEAVED.name(), "交错练习"),
             Map.entry(ActivityType.QUIZ.name(), "小测"),
+            Map.entry(ActivityType.MEMORY_PALACE.name(), "记忆宫殿"),
             Map.entry("DELIBERATE", "刻意练习"),
             Map.entry("FIRST_PRINCIPLES", "第一性原理"),
             Map.entry(TaskType.REVIEW_CARDS.name(), "计划：复习卡片"),
@@ -94,7 +95,7 @@ public final class ProfileCalculator {
 
     public static LearnerProfile compute(Input in) {
         Modes modes = modes(in);
-        return new LearnerProfile(in.learnerId(), in.today(), knowledge(in), abilities(in), errors(in), modes, behavior(in));
+        return new LearnerProfile(in.learnerId(), in.today(), knowledge(in), abilities(in), errors(in), modes, behavior(in), null);
     }
 
     public static Highlights highlights(LearnerProfile p) {
@@ -209,7 +210,7 @@ public final class ProfileCalculator {
     // ---------- 学习方式 ----------
 
     private static final Set<ActivityType> MODES = Set.of(ActivityType.CARD, ActivityType.FEYNMAN, ActivityType.PRACTICE,
-            ActivityType.INTERLEAVED, ActivityType.QUIZ);
+            ActivityType.INTERLEAVED, ActivityType.QUIZ, ActivityType.MEMORY_PALACE);
 
     static Modes modes(Input in) {
         record Key(String mode, NodeType type) {

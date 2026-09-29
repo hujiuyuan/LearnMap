@@ -12,5 +12,7 @@ public interface ReviewCardRepository extends JpaRepository<ReviewCard, Long> {
 
     List<ReviewCard> findByLearnerIdAndDueAtBefore(Long learnerId, LocalDateTime before);
 
+    List<ReviewCard> findByNoteId(Long noteId);
+
     long countByLearnerIdAndDueAtLessThanEqual(Long learnerId, LocalDateTime now);
 }

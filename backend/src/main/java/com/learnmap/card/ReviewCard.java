@@ -55,4 +55,8 @@ public class ReviewCard extends BaseEntity {
 
     @Column(name = "last_review_at")
     private LocalDateTime lastReviewAt;
+
+    /** 康奈尔笔记线索栏生成的卡片：来自哪篇笔记 */
+    @Column(name = "note_id")
+    private Long noteId;
 }

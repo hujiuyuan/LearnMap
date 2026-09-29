@@ -9,6 +9,7 @@ import com.learnmap.graph.GraphKind;
 import com.learnmap.graph.KnowledgeGraph;
 import com.learnmap.graph.KnowledgeGraphRepository;
 import com.learnmap.mastery.NodeMastery;
+import com.learnmap.note.NoteService;
 import com.learnmap.plan.PlanTaskRepository;
 import com.learnmap.plan.PomodoroSessionRepository;
 import com.learnmap.practice.LearnerGraphSnapshot;
@@ -45,6 +46,7 @@ import java.util.stream.Collectors;
 public class ProfileService {
 
     private final KnowledgeGraphRepository graphs;
+    private final NoteService notes;
     private final LearnerGraphSnapshotLoader snapshots;
     private final BookSectionRepository sections;
     private final EvidenceRepository evidences;
@@ -93,6 +95,6 @@ public class ProfileService {
         return ProfileCalculator.compute(new Input(learnerId, LocalDate.now(clock), nodes, mastery, evs, qs, solutionNames,
                 feynman.findByLearnerIdOrderByIdDesc(learnerId), retests.findByLearnerIdAndDoneTrue(learnerId),
                 tasks.findByLearnerId(learnerId), pomodoros.findByLearnerIdOrderByStartedAtDesc(learnerId),
-                practice.findByLearnerIdOrderByIdDesc(learnerId)));
+                practice.findByLearnerIdOrderByIdDesc(learnerId))).withNotes(notes.habits(learnerId));
     }
 }

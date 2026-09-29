@@ -1,6 +1,7 @@
 package com.learnmap.profile;
 
 import com.learnmap.graph.NodeType;
+import com.learnmap.note.NoteService.NoteHabits;
 import com.learnmap.question.Ability;
 
 import java.time.LocalDate;
@@ -8,7 +9,12 @@ import java.util.List;
 
 /** 五张画像（产品方案 5.4），全部由规则和统计算出，不用 AI */
 public record LearnerProfile(Long learnerId, LocalDate asOf, Knowledge knowledge, Abilities abilities, Errors errors,
-                             Modes modes, Behavior behavior) {
+                             Modes modes, Behavior behavior, NoteHabits notes) {
+
+    /** 笔记习惯（数量、原子化程度、链接密度、跨书链接）并入学习行为画像；笔记本身不打分 */
+    public LearnerProfile withNotes(NoteHabits habits) {
+        return new LearnerProfile(learnerId, asOf, knowledge, abilities, errors, modes, behavior, habits);
+    }
 
     // ---------- 知识画像 ----------
 
