@@ -24,6 +24,9 @@ class PalaceRulesTest {
         assertThat(PalaceRules.recalled("去分母、去括号、移项、合并同类项", null, "去分母 去括号 移项 合并同类项")).isTrue();
         assertThat(PalaceRules.recalled("去分母、去括号、移项、合并同类项", null, "去括号")).isFalse();
         assertThat(PalaceRules.recalled("移项", "移项", "")).isFalse();
+        // 漏了一两个虚词也算想起来了
+        assertThat(PalaceRules.recalled("移项要变号", null, "移项变号")).isTrue();
+        assertThat(PalaceRules.recalled("去分母", null, "去括号")).isFalse();
     }
 
     @Test

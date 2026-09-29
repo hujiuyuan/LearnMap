@@ -148,6 +148,36 @@ export const api = {
   markTask: (taskId, status) => request('POST', `/api/plan/tasks/${taskId}`, { status }),
   startPomodoro: (taskId, minutes) => request('POST', '/api/pomodoros', { taskId, minutes }),
   finishPomodoro: (id, completed, interruptions) => request('POST', `/api/pomodoros/${id}/finish`, { completed, interruptions }),
+  // 笔记
+  notes: (learnerId, q = {}) => request('GET', `/api/learners/${learnerId}/notes?${query(q)}`),
+  note: (id) => request('GET', `/api/notes/${id}`),
+  createNote: (body) => request('POST', '/api/notes', body),
+  updateNote: (id, body) => request('PUT', `/api/notes/${id}`, body),
+  deleteNote: (id) => request('DELETE', `/api/notes/${id}`),
+  noteFeedback: (id) => request('POST', `/api/notes/${id}/feedback`),
+  linkSuggestions: (id) => request('GET', `/api/notes/${id}/link-suggestions`),
+  linkNote: (id, targetId, suggested) => request('POST', `/api/notes/${id}/links/${targetId}?suggested=${!!suggested}`),
+  unlinkNote: (id, targetId) => request('DELETE', `/api/notes/${id}/links/${targetId}`),
+  mocDraft: (graphId, sectionId) => request('GET', `/api/graphs/${graphId}/moc-draft${sectionId ? `?sectionId=${sectionId}` : ''}`),
+  // 记忆宫殿
+  palaces: () => request('GET', '/api/palaces'),
+  palacesDue: () => request('GET', '/api/palaces/due'),
+  palace: (id) => request('GET', `/api/palaces/${id}`),
+  createPalace: (body) => request('POST', '/api/palaces', body),
+  deletePalace: (id) => request('DELETE', `/api/palaces/${id}`),
+  setLoci: (id, names) => request('PUT', `/api/palaces/${id}/loci`, { names }),
+  drillNext: (id) => request('GET', `/api/palaces/${id}/drill/next`),
+  drill: (id, body) => request('POST', `/api/palaces/${id}/drill`, body),
+  palaceCandidates: (id, graphId) => request('GET', `/api/palaces/${id}/candidates${graphId ? `?graphId=${graphId}` : ''}`),
+  place: (id, items) => request('PUT', `/api/palaces/${id}/placements`, items),
+  palaceImages: (id, regenerate) => request('POST', `/api/palaces/${id}/images?regenerate=${!!regenerate}`),
+  editPalaceImage: (placementId, image) => request('PATCH', `/api/palaces/placements/${placementId}`, { image }),
+  clearPalace: (id) => request('POST', `/api/palaces/${id}/clear`),
+  recallPalace: (id, answers) => request('POST', `/api/palaces/${id}/recall`, { answers }),
+}
+
+function query(q) {
+  return Object.entries(q).filter(([, v]) => v != null && v !== '').map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&')
 }
 
 export function parseOptions(optionsJson) {

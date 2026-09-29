@@ -100,6 +100,17 @@
       <view>番茄钟 {{ b.pomodoros }} 个，坚持完 {{ pct(b.pomodoroCompletionRate) }}，平均被打断 {{ b.avgInterruptions == null ? '—' : b.avgInterruptions }} 次</view>
       <view>近两周专注 {{ b.focusMinutes14 }} 分钟 · 常在{{ b.preferredSlot || '—' }}学习</view>
       <view v-for="n in b.notes" :key="n" class="muted">{{ n }}</view>
+      <view v-if="profile.notes" class="note-habits">
+        <view class="title">笔记</view>
+        <view v-if="!profile.notes.total" class="muted">还没有记笔记</view>
+        <view v-else>
+          <view>共 {{ profile.notes.total }} 篇：康奈尔 {{ profile.notes.cornell }}、卡片 {{ profile.notes.zettel }}、主题地图 {{ profile.notes.moc }}</view>
+          <view>从线索栏生成了 {{ profile.notes.cueCards }} 张复习卡</view>
+          <view v-if="profile.notes.zettel">卡片平均 {{ profile.notes.avgZettelChars == null ? '—' : Math.round(profile.notes.avgZettelChars) }} 字，只讲一个知识点的占 {{ pct(profile.notes.atomicRate) }}</view>
+          <view>平均每篇连着 {{ profile.notes.linkDensity == null ? '—' : profile.notes.linkDensity.toFixed(1) }} 篇，跨书关联 {{ profile.notes.crossBookLinks }} 条</view>
+          <view class="link" @click="openNotes">看笔记</view>
+        </view>
+      </view>
     </view>
 
     <view v-if="tab === 'todo'">
@@ -154,6 +165,10 @@ const k = computed(() => profile.value.knowledge)
 const b = computed(() => profile.value.behavior)
 const cal = computed(() => profile.value.abilities.calibration)
 const openFlags = computed(() => flags.value.filter((f) => !f.resolved))
+
+function openNotes() {
+  uni.navigateTo({ url: `/pages/notes/notes?learnerId=${learnerId.value}` })
+}
 
 function pct(v) {
   return v == null ? '—' : `${Math.round(v * 100)}%`
@@ -223,6 +238,13 @@ onShow(load)
 </script>
 
 <style>
+.link {
+  color: #2f6fed;
+  margin-top: 8rpx;
+}
+.note-habits {
+  margin-top: 20rpx;
+}
 .tabs {
   display: flex;
   background: #fff;

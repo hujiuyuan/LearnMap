@@ -37,6 +37,16 @@
       <view class="muted">{{ dueCount ? `有 ${dueCount} 张卡片到期，先回想再翻面` : '今天没有到期的卡片' }}</view>
     </view>
 
+    <view class="card" v-if="me && me.role === 'LEARNER'" @click="go('/pages/palace/palaces')">
+      <view class="title">记忆宫殿</view>
+      <view class="muted">{{ palaceDue ? `有 ${palaceDue} 座宫殿该走一遍了` : '把要按顺序记的东西放进熟悉的地方' }}</view>
+    </view>
+
+    <view class="card" v-if="me && me.role === 'LEARNER'" @click="go('/pages/notes/notes')">
+      <view class="title">我的笔记</view>
+      <view class="muted">康奈尔笔记、知识卡片、主题地图</view>
+    </view>
+
     <view class="card" v-if="retestCount" @click="openRetest">
       <view class="title">延时复测</view>
       <view class="muted">{{ retestCount }} 个知识点到了复测时间，看看还记不记得</view>
@@ -68,6 +78,7 @@ const me = ref(null)
 const books = ref([])
 const dueCount = ref(0)
 const retestCount = ref(0)
+const palaceDue = ref(0)
 const plan = ref(null)
 const highlights = ref(null)
 
@@ -79,6 +90,7 @@ async function load() {
   me.value = await api.me()
   books.value = await api.books()
   dueCount.value = me.value.role === 'LEARNER' ? (await api.dueCards()).dueCount : 0
+  palaceDue.value = me.value.role === 'LEARNER' ? (await api.palacesDue()).dueCount : 0
   retestCount.value = me.value.role === 'LEARNER' ? (await api.dueRetests()).length : 0
   plan.value = me.value.role === 'LEARNER' ? await api.plan(me.value.id) : null
   highlights.value = me.value.role === 'LEARNER' ? await api.highlights(me.value.id) : null

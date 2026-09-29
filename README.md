@@ -68,11 +68,13 @@ cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=mysql
 - 图谱编辑器（运维、上传书的辅导者）：逐个确认 / 驳回 / 修改 AI 生成的节点和关系，看每条关系的原文证据和节点的原文出处，手动加节点（自动出题）和前置关系，校对完发布为“已校对”
 - 同一本书生成了新版本（重新生成，或在编辑器里改了已发布的图谱）：不自动覆盖学习者的副本。系统列出新增 / 删除 / 改动的节点和关系，由人选“合并 / 保留旧版 / 换成新版”——学习者自己上传的书由学习者选，分配下来的书由辅导者选。有学习记录的节点不改不删，学习者自己删掉的节点和标记有误的关系保持原样，新节点自动补复习卡片，旧版题目照样能答
 - 节点详情显示原文出处和前置 / 后续
-- 前端：书架（含今日计划、今日复习入口）、学习目标设置、今日计划与番茄钟、按章展示的知识地图、知识点小测、入门诊断和报告、翻卡复习、费曼讲解、三种练习、延时复测
+- 记忆宫殿（引导式搭建）：先跟着一座示例宫殿体验一遍；再选一个熟悉的地方，按走动顺序定 5–30 个地点（地点太少、重名、方向乱会提示）；顺着背、倒着背、连续 3 次答对“某地点的下一个”才算建成；每个地点挂一个知识点或自己写的内容，AI 建议夸张画面、可以改成自己的；闭眼走一遍逐个回忆，结果记成证据，并按 FSRS 排下次重走的时间；宫殿可以清空内容留着下次用
+- 笔记挂在知识点上：康奈尔笔记（线索栏每行自动变成一张复习卡片，总结栏可以让 AI 对照要点查漏，不打分）；卡片盒（一张卡片一个观点，`[[标题]]` 链接到另一张，自动出反向链接，可以让 AI 找相关卡片、跨书的也会标出来）；内容地图 MOC（按章自动起草一份，列出本章知识点、相关卡片和前置关系，再自己改）。辅导者能看不能改；画像“习惯”页多了笔记习惯（各类数量、卡片是否只讲一个观点、链接密度、跨书关联）
+- 前端：书架（含今日计划、今日复习、记忆宫殿、我的笔记入口）、学习目标设置、今日计划与番茄钟、按章展示的知识地图、知识点小测、入门诊断和报告、翻卡复习、费曼讲解、三种练习、延时复测
 
 **AI**
 
-图谱抽取、出题、费曼评分、OCR 都走 `AiProvider` 接口，有两个实现，用 `LEARNMAP_AI_PROVIDER` 切换：
+图谱抽取、出题、费曼评分、OCR、记忆宫殿画面、相关笔记推荐都走 `AiProvider` 接口，有三个实现，用 `LEARNMAP_AI_PROVIDER` 切换。提示词和结果清洗规则各实现共用：
 
 - `stub`（默认）：离线假实现，不调用任何模型。每个小节抽成一个知识点、同章按顺序串前置、每个节点出一道判断题和一道填空题，只用来把链路跑通；不支持 OCR（图片、扫描版 PDF、手写讲解会提示不支持）。
 - `claude`：用 Claude（Anthropic 官方 Java SDK，默认模型 `claude-opus-5`）。抽取、出题、评分用结构化输出，结果再按业务规则清洗：题型只留能自动判分的、选择题答案必须是选项之一、关系两端必须是已有知识点。模型拒答时默认由服务端换模型重试（`LEARNMAP_AI_FALLBACKS=false` 可关）。
@@ -83,4 +85,13 @@ export LEARNMAP_AI_API_KEY=你的 Anthropic API key   # 不要写进代码或配
 export LEARNMAP_AI_MODEL=claude-opus-5               # 可选
 ```
 
-调用失败（key 不对、限流、服务出错）时接口返回 502 和原因。`ClaudeAiProviderTest.liveCall` 只在设置了 `LEARNMAP_AI_API_KEY` 时真实调用一次，CI 里不跑。
+- `deepseek`：用 DeepSeek（OpenAI 兼容的 chat/completions 接口 + JSON 输出模式，默认模型 `deepseek-chat`，默认地址 `https://api.deepseek.com`）。DeepSeek 的接口不收图片，所以**不支持 OCR**：照片、扫描版 PDF、手写讲解会提示不支持，文字版的书没有影响。
+
+```bash
+export LEARNMAP_AI_PROVIDER=deepseek
+export LEARNMAP_AI_API_KEY=你的 DeepSeek API key    # 也认 DEEPSEEK_API_KEY；不要写进代码或配置文件
+export LEARNMAP_AI_MODEL=deepseek-chat               # 可选
+export LEARNMAP_AI_BASE_URL=https://api.deepseek.com # 可选，换成其他 OpenAI 兼容地址
+```
+
+调用失败（key 不对、余额不足、限流、服务出错）时接口返回 502 和原因。`ClaudeAiProviderTest.liveCall` 和 `DeepSeekAiProviderTest.liveCall` 只在 `LEARNMAP_AI_PROVIDER` 选了对应模型并设置了 `LEARNMAP_AI_API_KEY` 时真实调用一次，CI 里不跑。

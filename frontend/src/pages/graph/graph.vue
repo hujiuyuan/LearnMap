@@ -7,6 +7,8 @@
         <button size="mini" type="primary" @click="openDiagnosis">{{ lit || tested ? '继续 / 重新诊断' : '开始入门诊断' }}</button>
         <button size="mini" @click="openInterleaved">交错练习</button>
         <button size="mini" @click="openGoal">设学习目标</button>
+        <button size="mini" @click="openNotes">笔记</button>
+        <button size="mini" @click="openPalaces">记忆宫殿</button>
       </view>
     </view>
 
@@ -74,6 +76,14 @@ function prereqNames(node) {
 
 function openInterleaved() {
   uni.navigateTo({ url: `/pages/practice/practice?graphId=${graphId.value}&mode=INTERLEAVED` })
+}
+
+function openNotes() {
+  uni.navigateTo({ url: `/pages/notes/notes?graphId=${graphId.value}&bookId=${bookId.value}` })
+}
+
+function openPalaces() {
+  uni.navigateTo({ url: `/pages/palace/palaces?graphId=${graphId.value}` })
 }
 
 function openGoal() {

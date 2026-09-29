@@ -59,7 +59,7 @@ public final class PalaceRules {
         if (nodeName != null && key(nodeName).length() >= 2 && a.contains(key(nodeName))) {
             return true;
         }
-        return overlap(content, answer) >= 0.6;
+        return overlap(content, answer) >= 0.5;
     }
 
     /** 地点名：一致，或者一个包含另一个（“鞋柜”和“门口鞋柜”都算对） */

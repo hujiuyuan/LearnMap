@@ -158,6 +158,12 @@ public class NoteService {
             noteNodes.save(new NoteNode(n.getId(), kn.getId()));
         }
         syncWikiLinks(n);
+        // 别的笔记里早就写了 [[这个标题]]，现在这张写出来了，把它们连上
+        for (Note other : notes.findByOwnerIdOrderByUpdatedAtDesc(n.getOwnerId())) {
+            if (!other.getId().equals(n.getId()) && wikiTitles(other.getBody()).contains(title)) {
+                syncWikiLinks(other);
+            }
+        }
         if (n.getKind() == NoteKind.CORNELL) {
             syncCueCards(n, attached.get(0).getId());
         }
@@ -505,7 +511,7 @@ public class NoteService {
     }
 
     private Map<Long, String> bookTitles(Set<Long> ids) {
-        return ids.isEmpty() ? Map.of() : books.findAllById(ids).stream().collect(Collectors.toMap(Book::getId, Book::getTitle));
+        return ids.isEmpty() ? new HashMap<>() : books.findAllById(ids).stream().collect(Collectors.toMap(Book::getId, Book::getTitle));
     }
 
     static boolean crossBook(Note a, Note b) {

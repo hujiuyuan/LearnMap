@@ -20,6 +20,15 @@
         <button size="mini" @click="go('feynman')">费曼讲解</button>
         <button size="mini" @click="go('DELIBERATE')">刻意练习</button>
         <button size="mini" @click="go('FIRST_PRINCIPLES')">以它为目标补基础</button>
+        <button size="mini" @click="go('palace')">放进记忆宫殿</button>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="title">笔记</view>
+      <view class="modes">
+        <button size="mini" @click="go('note')">记一张卡片</button>
+        <button size="mini" @click="go('notes')">这个知识点的笔记</button>
       </view>
     </view>
 
@@ -68,7 +77,14 @@ function options(q) {
 
 function go(mode) {
   const q = `graphId=${graphId.value}&nodeId=${nodeId.value}`
-  if (mode === 'feynman') {
+  const name = encodeURIComponent(node.value.name)
+  if (mode === 'note') {
+    uni.navigateTo({ url: `/pages/notes/edit?kind=ZETTEL&${q}` })
+  } else if (mode === 'notes') {
+    uni.navigateTo({ url: `/pages/notes/notes?${q}&nodeName=${name}` })
+  } else if (mode === 'palace') {
+    uni.navigateTo({ url: `/pages/palace/palaces?graphId=${graphId.value}` })
+  } else if (mode === 'feynman') {
     uni.navigateTo({ url: `/pages/feynman/feynman?${q}&name=${encodeURIComponent(node.value.name)}` })
   } else {
     uni.navigateTo({ url: `/pages/practice/practice?${q}&mode=${mode}` })

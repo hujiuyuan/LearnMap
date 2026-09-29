@@ -116,6 +116,13 @@ class NotesAndPalaceIntegrationTest extends ApiTestSupport {
         long id = saveNote(learner, null, Map.of("kind", "ZETTEL", "title", "我的卡", "body", "内容", "nodeIds", List.of(node)),
                 status().isCreated()).get("id").asLong();
 
+        // 不挂知识点、不属于哪本书的卡片也能存
+        assertThat(saveNote(other, null, Map.of("kind", "ZETTEL", "title", "随手记", "body", "想到 [[还没写]]", "nodeIds", List.of()),
+                status().isCreated()).get("unresolved")).hasSize(1);
+        // 后写出来的卡片自动和先前写了 [[它]] 的卡片连上
+        assertThat(saveNote(other, null, Map.of("kind", "ZETTEL", "title", "还没写", "body", "补上了", "nodeIds", List.of()),
+                status().isCreated()).get("links")).hasSize(1);
+
         saveNote(other, null, Map.of("kind", "ZETTEL", "title", "偷挂", "nodeIds", List.of(node)), status().isForbidden());
         call(get("/api/notes/" + id), other, status().isForbidden());
         call(get("/api/learners/" + learner + "/notes"), other, status().isForbidden());

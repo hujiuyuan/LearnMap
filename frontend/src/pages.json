@@ -107,6 +107,36 @@
 			"style": {
 				"navigationBarTitleText": "上传书"
 			}
+		},
+		{
+			"path": "pages/notes/notes",
+			"style": {
+				"navigationBarTitleText": "我的笔记"
+			}
+		},
+		{
+			"path": "pages/notes/edit",
+			"style": {
+				"navigationBarTitleText": "笔记"
+			}
+		},
+		{
+			"path": "pages/palace/palaces",
+			"style": {
+				"navigationBarTitleText": "记忆宫殿"
+			}
+		},
+		{
+			"path": "pages/palace/demo",
+			"style": {
+				"navigationBarTitleText": "记忆宫殿是怎么回事"
+			}
+		},
+		{
+			"path": "pages/palace/palace",
+			"style": {
+				"navigationBarTitleText": "建记忆宫殿"
+			}
 		}
 	],
 	"globalStyle": {
