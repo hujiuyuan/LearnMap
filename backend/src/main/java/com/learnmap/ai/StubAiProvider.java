@@ -6,8 +6,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * 离线假实现，用于本地开发、测试和演示，不调用任何模型：
@@ -25,7 +27,7 @@ public class StubAiProvider implements AiProvider {
 
     @Override
     public String ocr(byte[] image, String mimeType) {
-        throw new UnsupportedOperationException("当前 AI 提供方是 stub，不支持 OCR；设置 LEARNMAP_AI_PROVIDER=claude 和 LEARNMAP_AI_API_KEY 后可用");
+        throw new UnsupportedOperationException("当前 AI 提供方是 stub，不支持 OCR；设置 LEARNMAP_AI_PROVIDER=claude 和 LEARNMAP_AI_API_KEY 后可用（deepseek 不支持图片）");
     }
 
     @Override
@@ -76,6 +78,41 @@ public class StubAiProvider implements AiProvider {
         double score = covered.size() / 2.0;
         return new FeynmanGrade(score, covered, missing, List.of(),
                 List.of("能不能用一个生活中的例子再讲一遍「" + node.name() + "」？"));
+    }
+
+    @Override
+    public List<String> suggestPalaceImages(List<PalaceItem> items) {
+        // 固定模板，只为跑通流程；真实模型会编更生动的画面
+        return items.stream().map(i -> "想象「" + i.content() + "」变成一个巨大的东西，砰地砸在「" + i.locus() + "」上，还冲你大喊它的名字")
+                .toList();
+    }
+
+    @Override
+    public List<Integer> suggestLinks(String card, List<String> candidates) {
+        // 按两字片段的重合度粗略找相关卡片
+        Set<String> a = bigrams(card);
+        List<double[]> scored = new ArrayList<>();
+        for (int i = 0; i < candidates.size(); i++) {
+            Set<String> b = bigrams(candidates.get(i));
+            Set<String> inter = new HashSet<>(a);
+            inter.retainAll(b);
+            Set<String> union = new HashSet<>(a);
+            union.addAll(b);
+            double j = union.isEmpty() ? 0 : inter.size() / (double) union.size();
+            if (j >= 0.12) {
+                scored.add(new double[]{i, j});
+            }
+        }
+        return scored.stream().sorted((x, y) -> Double.compare(y[1], x[1])).limit(3).map(x -> (int) x[0]).toList();
+    }
+
+    static Set<String> bigrams(String text) {
+        String t = text == null ? "" : text.replaceAll("[\\s\\p{Punct}，。、；：？！“”‘’（）【】《》]", "");
+        Set<String> out = new HashSet<>();
+        for (int i = 0; i + 1 < t.length(); i++) {
+            out.add(t.substring(i, i + 2));
+        }
+        return out;
     }
 
     static String stripNumbering(String title) {
