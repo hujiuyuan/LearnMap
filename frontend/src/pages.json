@@ -2,15 +2,141 @@
 	"pages": [
 		{
 			"path": "pages/index/index",
-			"style": { "navigationBarTitleText": "知图 LearnMap" }
+			"style": {
+				"navigationBarTitleText": "知图 LearnMap"
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录"
+			}
 		},
 		{
 			"path": "pages/graph/graph",
-			"style": { "navigationBarTitleText": "知识地图" }
+			"style": {
+				"navigationBarTitleText": "知识地图"
+			}
 		},
 		{
 			"path": "pages/node/node",
-			"style": { "navigationBarTitleText": "知识点" }
+			"style": {
+				"navigationBarTitleText": "知识点"
+			}
+		},
+		{
+			"path": "pages/diagnosis/diagnosis",
+			"style": {
+				"navigationBarTitleText": "入门诊断"
+			}
+		},
+		{
+			"path": "pages/review/review",
+			"style": {
+				"navigationBarTitleText": "今日复习"
+			}
+		},
+		{
+			"path": "pages/practice/practice",
+			"style": {
+				"navigationBarTitleText": "练习"
+			}
+		},
+		{
+			"path": "pages/feynman/feynman",
+			"style": {
+				"navigationBarTitleText": "费曼讲解"
+			}
+		},
+		{
+			"path": "pages/retest/retest",
+			"style": {
+				"navigationBarTitleText": "延时复测"
+			}
+		},
+		{
+			"path": "pages/goal/goal",
+			"style": {
+				"navigationBarTitleText": "学习目标"
+			}
+		},
+		{
+			"path": "pages/plan/plan",
+			"style": {
+				"navigationBarTitleText": "今日计划"
+			}
+		},
+		{
+			"path": "pages/tutor/tutor",
+			"style": {
+				"navigationBarTitleText": "我的学习者"
+			}
+		},
+		{
+			"path": "pages/learner/learner",
+			"style": {
+				"navigationBarTitleText": "学习者画像"
+			}
+		},
+		{
+			"path": "pages/trace/trace",
+			"style": {
+				"navigationBarTitleText": "为什么不会"
+			}
+		},
+		{
+			"path": "pages/ops/ops",
+			"style": {
+				"navigationBarTitleText": "运维"
+			}
+		},
+		{
+			"path": "pages/editor/editor",
+			"style": {
+				"navigationBarTitleText": "图谱编辑器"
+			}
+		},
+		{
+			"path": "pages/update/update",
+			"style": {
+				"navigationBarTitleText": "图谱有新版本"
+			}
+		},
+		{
+			"path": "pages/upload/upload",
+			"style": {
+				"navigationBarTitleText": "上传书"
+			}
+		},
+		{
+			"path": "pages/notes/notes",
+			"style": {
+				"navigationBarTitleText": "我的笔记"
+			}
+		},
+		{
+			"path": "pages/notes/edit",
+			"style": {
+				"navigationBarTitleText": "笔记"
+			}
+		},
+		{
+			"path": "pages/palace/palaces",
+			"style": {
+				"navigationBarTitleText": "记忆宫殿"
+			}
+		},
+		{
+			"path": "pages/palace/demo",
+			"style": {
+				"navigationBarTitleText": "记忆宫殿是怎么回事"
+			}
+		},
+		{
+			"path": "pages/palace/palace",
+			"style": {
+				"navigationBarTitleText": "建记忆宫殿"
+			}
 		}
 	],
 	"globalStyle": {

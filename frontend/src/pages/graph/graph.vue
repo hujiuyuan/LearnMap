@@ -3,6 +3,18 @@
     <view class="card">
       <view class="title">{{ lit }} / {{ total }} 个知识点已点亮</view>
       <view class="muted" v-if="graph && graph.reviewStatus === 'UNREVIEWED'">这张图谱由 AI 生成、未经人工校对，诊断结论仅供参考</view>
+      <view class="actions">
+        <button size="mini" type="primary" @click="openDiagnosis">{{ lit || tested ? '继续 / 重新诊断' : '开始入门诊断' }}</button>
+        <button size="mini" @click="openInterleaved">交错练习</button>
+        <button size="mini" @click="openGoal">设学习目标</button>
+        <button size="mini" @click="openNotes">笔记</button>
+        <button size="mini" @click="openPalaces">记忆宫殿</button>
+      </view>
+    </view>
+
+    <view class="card update" v-if="update && update.available" @click="openUpdate">
+      <view class="title">这本书的图谱有新版本</view>
+      <view class="muted">{{ update.canDecide ? '点这里看差异，选择合并 / 保留旧版 / 换成新版' : '等你的辅导者决定要不要更新' }}</view>
     </view>
 
     <!-- 移动端默认用“按章列表”展示，不画一大团网（产品方案 2.6） -->
@@ -30,9 +42,11 @@ const graphId = ref(null)
 const bookId = ref(null)
 const graph = ref(null)
 const sections = ref([])
+const update = ref(null)
 
 const status = nodeStatus
 const total = computed(() => (graph.value ? graph.value.nodes.length : 0))
+const tested = computed(() => (graph.value ? graph.value.nodes.filter((n) => n.mastery != null).length : 0))
 const lit = computed(() => (graph.value ? graph.value.nodes.filter((n) => nodeStatus(n).key === 'good').length : 0))
 
 const chapters = computed(() => {
@@ -60,6 +74,26 @@ function prereqNames(node) {
     .join('、')
 }
 
+function openInterleaved() {
+  uni.navigateTo({ url: `/pages/practice/practice?graphId=${graphId.value}&mode=INTERLEAVED` })
+}
+
+function openNotes() {
+  uni.navigateTo({ url: `/pages/notes/notes?graphId=${graphId.value}&bookId=${bookId.value}` })
+}
+
+function openPalaces() {
+  uni.navigateTo({ url: `/pages/palace/palaces?graphId=${graphId.value}` })
+}
+
+function openGoal() {
+  uni.navigateTo({ url: `/pages/goal/goal?graphId=${graphId.value}&bookId=${bookId.value}` })
+}
+
+function openDiagnosis() {
+  uni.navigateTo({ url: `/pages/diagnosis/diagnosis?graphId=${graphId.value}` })
+}
+
 function openNode(n) {
   uni.navigateTo({ url: `/pages/node/node?graphId=${graphId.value}&nodeId=${n.id}` })
 }
@@ -68,6 +102,11 @@ async function load() {
   if (!graphId.value) return
   graph.value = await api.graph(graphId.value)
   sections.value = await api.sections(bookId.value)
+  update.value = await api.graphUpdate(graphId.value)
+}
+
+function openUpdate() {
+  uni.navigateTo({ url: `/pages/update/update?graphId=${graphId.value}` })
 }
 
 onLoad((q) => {
@@ -78,6 +117,14 @@ onShow(load)
 </script>
 
 <style>
+.update {
+  background: #fff8e6;
+}
+.actions {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
 .node {
   display: flex;
   align-items: center;

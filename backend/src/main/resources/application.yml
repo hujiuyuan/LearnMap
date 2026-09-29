@@ -25,9 +25,18 @@ management:
 
 learnmap:
   ai:
-    # stub：离线假实现，不调用任何模型。真实提供方接入后改这里。
+    # stub：离线假实现，不调用任何模型；claude / deepseek：用对应的模型（需要 LEARNMAP_AI_API_KEY）
     provider: ${LEARNMAP_AI_PROVIDER:stub}
     api-key: ${LEARNMAP_AI_API_KEY:}
+    # 留空用默认模型：claude-opus-5 / deepseek-chat
     model: ${LEARNMAP_AI_MODEL:}
+    fallbacks: ${LEARNMAP_AI_FALLBACKS:true}
+    # 只对 deepseek 有用，留空用 https://api.deepseek.com
+    base-url: ${LEARNMAP_AI_BASE_URL:}
+  auth:
+    # 只认登录令牌；dev / test 里打开，允许用请求头 X-User-Id 直接指定用户
+    allow-user-id-header: false
+    token-days: 30
+    admin-password: ${LEARNMAP_ADMIN_PASSWORD:}
   demo:
     enabled: false

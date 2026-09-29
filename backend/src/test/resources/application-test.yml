@@ -5,5 +5,9 @@ spring:
     password:
 
 learnmap:
+  auth:
+    allow-user-id-header: true
   demo:
+    enabled: false
+  scheduling:
     enabled: false

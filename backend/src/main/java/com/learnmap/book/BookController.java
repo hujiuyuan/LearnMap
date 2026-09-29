@@ -1,5 +1,6 @@
 package com.learnmap.book;
 
+import com.learnmap.book.BookTextExtractor.Upload;
 import com.learnmap.common.CurrentUser;
 import com.learnmap.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -44,12 +46,15 @@ public class BookController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ImportView upload(@RequestHeader(CurrentUser.HEADER) Long userId,
-                             @RequestPart("file") MultipartFile file,
+                             @RequestPart("file") List<MultipartFile> files,
                              @RequestParam String title,
                              @RequestParam(required = false) String author,
                              @RequestParam(required = false) ReviewMode reviewMode) throws IOException {
-        BookService.ImportResult r = bookService.importBook(users.require(userId), title, author,
-                file.getOriginalFilename(), file.getBytes(), reviewMode);
+        List<Upload> uploads = new ArrayList<>();
+        for (MultipartFile f : files) {
+            uploads.add(new Upload(f.getOriginalFilename(), f.getBytes()));
+        }
+        BookService.ImportResult r = bookService.importBook(users.require(userId), title, author, uploads, reviewMode);
         return new ImportView(BookView.of(r.book()), r.graph().getId(), r.graph().getStatus().name());
     }
 

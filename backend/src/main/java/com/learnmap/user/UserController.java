@@ -1,5 +1,7 @@
 package com.learnmap.user;
 
+import com.learnmap.auth.AuthProperties;
+import com.learnmap.auth.AuthService;
 import com.learnmap.common.CurrentUser;
 import com.learnmap.common.ForbiddenException;
 import jakarta.validation.Valid;
@@ -24,21 +26,35 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final AuthService auth;
+    private final AuthProperties authProps;
 
-    public record CreateUserRequest(@NotBlank String username, @NotBlank String displayName, @NotNull Role role) {
+    public record CreateUserRequest(@NotBlank String username, @NotBlank String displayName, @NotNull Role role,
+                                    String password) {
     }
 
     public record UserView(Long id, String username, String displayName, Role role) {
-        static UserView of(AppUser u) {
+        public static UserView of(AppUser u) {
             return new UserView(u.getId(), u.getUsername(), u.getDisplayName(), u.getRole());
         }
     }
 
-    /** 开发阶段的注册入口；接入真正的登录后替换。 */
+    /**
+     * 直接建账号：运维用来建运维账号等。开发 / 测试模式（允许 X-User-Id）下不限制，方便演示和接口测试。
+     * 普通用户注册走 /api/auth/register。
+     */
     @PostMapping("/users")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserView create(@Valid @RequestBody CreateUserRequest req) {
-        return UserView.of(userService.create(req.username(), req.displayName(), req.role()));
+    public UserView create(@RequestHeader(value = CurrentUser.HEADER, required = false) Long userId,
+                           @Valid @RequestBody CreateUserRequest req) {
+        if (!authProps.allowUserIdHeader() && (userId == null || userService.require(userId).getRole() != Role.OPS)) {
+            throw new ForbiddenException("只有运维可以直接建账号，请用注册");
+        }
+        AppUser u = userService.create(req.username(), req.displayName(), req.role());
+        if (req.password() != null && !req.password().isBlank()) {
+            auth.setPassword(u, req.password());
+        }
+        return UserView.of(u);
     }
 
     @GetMapping("/me")

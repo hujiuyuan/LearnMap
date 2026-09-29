@@ -1,5 +1,6 @@
 package com.learnmap.demo;
 
+import com.learnmap.auth.AuthService;
 import com.learnmap.book.BookService;
 import com.learnmap.book.ReviewMode;
 import com.learnmap.graph.GraphService;
@@ -29,6 +30,9 @@ public class DemoDataLoader implements ApplicationRunner {
     private final UserService users;
     private final BookService books;
     private final GraphService graphs;
+    private final AuthService auth;
+
+    static final String DEMO_PASSWORD = "demo123";
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -39,11 +43,20 @@ public class DemoDataLoader implements ApplicationRunner {
         AppUser tutor = users.create("tutor", "王老师", Role.TUTOR);
         AppUser learner = users.create("learner", "小明", Role.LEARNER);
         users.bindLearner(tutor.getId(), learner.getId());
+        // 演示账号的密码只在 dev 模式（内存数据库）里用
+        for (AppUser u : new AppUser[]{ops, tutor, learner}) {
+            auth.setPassword(u, DEMO_PASSWORD);
+        }
 
         byte[] content = new ClassPathResource("demo/quadratic-equation.md").getContentAsByteArray();
-        var imported = books.importBook(ops, "一元二次方程（示例）", "LearnMap", "quadratic-equation.md", content, ReviewMode.NONE);
-        var copy = graphs.assign(tutor, imported.book().getId(), learner.getId());
-        log.info("演示数据已导入：运维 id={}，辅导者 id={}，学习者 id={}，书 id={}，学习者图谱 id={}",
-                ops.getId(), tutor.getId(), learner.getId(), imported.book().getId(), copy.id());
+        try {
+            var imported = books.importBook(ops, "一元二次方程（示例）", "LearnMap", "quadratic-equation.md", content, ReviewMode.NONE);
+            var copy = graphs.assign(tutor, imported.book().getId(), learner.getId());
+            log.info("演示数据已导入：运维 id={}，辅导者 id={}，学习者 id={}，书 id={}，学习者图谱 id={}",
+                    ops.getId(), tutor.getId(), learner.getId(), imported.book().getId(), copy.id());
+        } catch (RuntimeException e) {
+            // 比如接了真实 AI 但 key 不对：账号照样建好，示例书跳过，不影响启动
+            log.warn("示例书导入失败，已跳过：{}", e.getMessage());
+        }
     }
 }

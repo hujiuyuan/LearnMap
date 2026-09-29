@@ -4,6 +4,32 @@
       <view class="title">{{ node.name }}</view>
       <view class="muted">{{ statusLabel }}<text v-if="node.mastery != null"> · 掌握度 {{ Math.round(node.mastery * 100) }}%</text></view>
       <view class="definition">{{ node.definition }}</view>
+      <view v-if="detail && detail.sources.length" class="sources">
+        <view class="muted">原文出处</view>
+        <view v-for="(src, i) in detail.sources" :key="i" class="source">{{ src }}</view>
+      </view>
+      <view v-if="detail" class="muted">
+        <text v-if="prereqs.length">前置：{{ prereqs.join('、') }}　</text>
+        <text v-if="nexts.length">后续：{{ nexts.join('、') }}</text>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="title">换一种方式学</view>
+      <view class="modes">
+        <button size="mini" @click="go('feynman')">费曼讲解</button>
+        <button size="mini" @click="go('DELIBERATE')">刻意练习</button>
+        <button size="mini" @click="go('FIRST_PRINCIPLES')">以它为目标补基础</button>
+        <button size="mini" @click="go('palace')">放进记忆宫殿</button>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="title">笔记</view>
+      <view class="modes">
+        <button size="mini" @click="go('note')">记一张卡片</button>
+        <button size="mini" @click="go('notes')">这个知识点的笔记</button>
+      </view>
     </view>
 
     <view class="card">
@@ -49,7 +75,28 @@ function options(q) {
   }
 }
 
+function go(mode) {
+  const q = `graphId=${graphId.value}&nodeId=${nodeId.value}`
+  const name = encodeURIComponent(node.value.name)
+  if (mode === 'note') {
+    uni.navigateTo({ url: `/pages/notes/edit?kind=ZETTEL&${q}` })
+  } else if (mode === 'notes') {
+    uni.navigateTo({ url: `/pages/notes/notes?${q}&nodeName=${name}` })
+  } else if (mode === 'palace') {
+    uni.navigateTo({ url: `/pages/palace/palaces?graphId=${graphId.value}` })
+  } else if (mode === 'feynman') {
+    uni.navigateTo({ url: `/pages/feynman/feynman?${q}&name=${encodeURIComponent(node.value.name)}` })
+  } else {
+    uni.navigateTo({ url: `/pages/practice/practice?${q}&mode=${mode}` })
+  }
+}
+
+const detail = ref(null)
+const prereqs = computed(() => (detail.value ? detail.value.relations.filter((r) => r.incoming && r.type === 'PREREQUISITE' && !r.disputed).map((r) => r.otherName) : []))
+const nexts = computed(() => (detail.value ? detail.value.relations.filter((r) => !r.incoming && r.type === 'PREREQUISITE' && !r.disputed).map((r) => r.otherName) : []))
+
 async function load() {
+  detail.value = await api.nodeDetail(graphId.value, nodeId.value)
   const graph = await api.graph(graphId.value)
   node.value = graph.nodes.find((n) => String(n.id) === String(nodeId.value))
   questions.value = await api.questions(graphId.value, nodeId.value)
@@ -73,6 +120,23 @@ onLoad((q) => {
 </script>
 
 <style>
+.modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
+.sources {
+  margin: 12rpx 0;
+}
+.source {
+  font-size: 24rpx;
+  color: #555;
+  background: #f5f6f8;
+  padding: 12rpx;
+  margin-top: 8rpx;
+  border-radius: 8rpx;
+}
 .definition {
   margin-top: 16rpx;
   line-height: 1.7;
